@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { DimensionSystem } from '../systems/DimensionSystem';
+import { DimensionUI } from '../systems/DimensionUI';
+
 
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -87,6 +89,9 @@ export class GameScene extends Phaser.Scene {
 
     this.shiftKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
     this.dimensionSystem = new DimensionSystem(this);
+    
+    // Inicializar UI do Sistema de Dimensão
+    new DimensionUI(this, this.dimensionSystem);
 
     // Transição para a próxima fase
     // Tiles (2,0) e (3,0) -> X: 64-128, Y: 0-32. Centro: (96, 16)
@@ -156,20 +161,36 @@ export class GameScene extends Phaser.Scene {
     body.setVelocity(0, 0);
     this.player.stop();
 
-    const { width, height } = this.scale;
-    
-    // Overlay de diálogo
-    const bg = this.add.rectangle(width/2, height - 60, width * 0.8, 60, 0x000000, 0.8)
+    const cam = this.cameras.main;
+    const zoom = cam.zoom;
+    const w = cam.width;
+    const h = cam.height;
+
+    const centerX = w / 2;
+    const visibleBottomY = (h / 2) + ((h / 2) / zoom);
+    const boxWidth  = (w * 0.8) / zoom;
+    const boxHeight = 80 / zoom;
+    const yPos = visibleBottomY - (boxHeight / 2) - (10 / zoom);
+
+    const bg = this.add.rectangle(centerX, yPos, boxWidth, boxHeight, 0x000000, 0.8)
       .setScrollFactor(0)
       .setDepth(100);
-    
-    const text = this.add.text(width/2, height - 60, 
-      "O que foi isso? O mundo... mudou de cor.\n(Pressione SHIFT para alternar dimensões)", {
+
+    // Texto alinhado com a caixa — wordWrap proporcional ao zoom
+    const text = this.add.text(centerX, yPos,
+      "O que foi isso? O mundo... mudou de cor.\n(Pressione SHIFT para alternar)", {
       fontFamily: 'monospace',
-      fontSize: '12px',
+      fontSize: '32px',
       color: '#ffffff',
-      align: 'center'
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4,
+      lineSpacing: 6,
+      wordWrap: { width: boxWidth * zoom } // ← esta é a correção
+    }).setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(101)
+      .setScale(1 / zoom);
 
     this.input.keyboard!.once('keydown-SHIFT', () => {
       bg.destroy();

@@ -26,6 +26,8 @@ export class DimensionSystem {
 
   /** Taxa de drenagem: pontos por segundo no mundo espiritual */
   private drainRate = 12;
+  /** Taxa de recarga: pontos por segundo no mundo real */
+  private rechargeRate = 5;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -55,7 +57,7 @@ export class DimensionSystem {
    * Emite EVENTS.DIMENSION_CHANGED para que o HUD reaja.
    */
   switch(): void {
-    if (this.isSpirit && this._energy <= 0) return; // não pode entrar com 0 energia
+    if (this.isReal && this._energy <= 0) return; // não pode entrar com 0 energia
 
     this.current = this.isReal ? Dimension.SPIRIT : Dimension.REAL;
 
@@ -67,16 +69,23 @@ export class DimensionSystem {
 
   /**
    * Chamar no update() da cena.
-   * Drena energia no mundo espiritual e força a saída em 0.
+   * Drena energia no mundo espiritual e recarrega no mundo real.
    */
   update(delta: number): void {
-    if (!this.isSpirit) return;
+    if (this.isSpirit) {
+      // Drenando energia no mundo espiritual
+      this._energy = Math.max(0, this._energy - this.drainRate * (delta / 1000));
+      this.scene.events.emit(EVENTS.ENERGY_CHANGED, this._energy);
 
-    this._energy = Math.max(0, this._energy - this.drainRate * (delta / 1000));
-    this.scene.events.emit(EVENTS.ENERGY_CHANGED, this._energy);
-
-    if (this._energy <= 0) {
-      this.switch(); // volta forçado ao mundo real
+      if (this._energy <= 0) {
+        this.switch(); // volta forçado ao mundo real
+      }
+    } else {
+      // Recarregando energia no mundo real
+      if (this._energy < DimensionSystem.MAX_ENERGY) {
+        this._energy = Math.min(DimensionSystem.MAX_ENERGY, this._energy + this.rechargeRate * (delta / 1000));
+        this.scene.events.emit(EVENTS.ENERGY_CHANGED, this._energy);
+      }
     }
   }
 

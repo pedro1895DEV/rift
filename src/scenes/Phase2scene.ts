@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { DimensionSystem } from '../systems/DimensionSystem';
+import { DimensionUI } from '../systems/DimensionUI';
 import { Orb } from '../objects/Orb';
 import { Rat } from '../objects/Rat';
 
@@ -27,6 +28,11 @@ export class Phase2Scene extends Phaser.Scene {
     this.load.image('img_tiles', 'assets/tilesets/tiles.png');
     this.load.image('img_water', 'assets/tilesets/water_animation_demo.png');
     this.load.image('img_assets', 'assets/tilesets/assets.png');
+    this.load.image('img_chest', 'assets/tilesets/chest.png');
+    this.load.spritesheet('rats', 'assets/tilesets/Rats.png', {
+      frameWidth: 48,
+      frameHeight: 48
+    });
     this.load.spritesheet('character', 'assets/characters/character_demo.png', {
       frameWidth: 44,
       frameHeight: 50
@@ -44,7 +50,9 @@ export class Phase2Scene extends Phaser.Scene {
     const tileset       = map.addTilesetImage('tiles', 'img_tiles')!;
     const waterTileset  = map.addTilesetImage('water_animation_demo', 'img_water')!;
     const assetsTileset = map.addTilesetImage('assets', 'img_assets')!;
-    const todosTilesets = [tileset, waterTileset, assetsTileset];
+    const chestTileset  = map.addTilesetImage('Chest_spritesheet', 'img_chest')!;
+    
+    const todosTilesets = [tileset, waterTileset, assetsTileset, chestTileset];
 
     const camada1 = map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0)!;
     const camada2 = map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0)!;
@@ -104,13 +112,13 @@ export class Phase2Scene extends Phaser.Scene {
     this.orbs.add(orb);
 
     const ratPositions = [
-      { x: orbX - 60, y: orbY },
-      { x: orbX + 60, y: orbY },
-      { x: orbX, y: orbY + 60 }
+      { x: orbX - 60, y: orbY, var: 0 }, // Marrom
+      { x: orbX + 60, y: orbY, var: 1 }, // Marrom escuro
+      { x: orbX, y: orbY + 60, var: 2 }  // Preto
     ];
 
     ratPositions.forEach(pos => {
-      const rat = new Rat(this, pos.x, pos.y);
+      const rat = new Rat(this, pos.x, pos.y, pos.var);
       rat.setTarget(this.player);
       this.rats.add(rat);
     });
@@ -178,14 +186,34 @@ export class Phase2Scene extends Phaser.Scene {
     (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     this.player.stop();
 
-    const { width, height } = this.scale;
-    const bg = this.add.rectangle(width/2, height - 60, width * 0.8, 60, 0x000000, 0.8)
-      .setScrollFactor(0).setDepth(100);
+    const w = this.scale.width;
+    const h = this.scale.height;
+    const cam = this.cameras.main;
+    const zoom = cam.zoom;
     
-    const text = this.add.text(width/2, height - 60, 
-      "O que foi isso? O mundo... mudou de cor.\n(Pressione SHIFT para alternar dimensões)", {
-      fontFamily: 'monospace', fontSize: '12px', color: '#ffffff', align: 'center'
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    // Coordenadas centrais visíveis
+    const centerX = w / (2 * zoom);
+    const centerY = h / zoom - (40 / zoom); // Fica na parte inferior
+
+    // Texto com scale inverso para não ficar estourado
+    const text = this.add.text(centerX, centerY, 
+      "O que foi isso? O mundo... mudou de cor.\n(Pressione SHIFT para alternar)", {
+      fontFamily: 'monospace',
+      fontSize: '32px',
+      color: '#ffffff',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101).setScale(1 / zoom * 0.5);
+
+    // Caixa baseada no tamanho real do texto após o scale
+    const padding = 16 / zoom;
+    const boxW = text.displayWidth  + padding * 2;
+    const boxH = text.displayHeight + padding * 2;
+
+    const bg = this.add.rectangle(centerX, centerY, boxW, boxH, 0x000000, 0.85)
+      .setScrollFactor(0)
+      .setDepth(100);
 
     this.input.keyboard!.once('keydown-SHIFT', () => {
       bg.destroy();
