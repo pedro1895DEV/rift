@@ -1,0 +1,183 @@
+import Phaser from 'phaser';
+import { DimensionSystem } from '../systems/DimensionSystem';
+import { GameEvents, HealthChangedPayload } from '../events/GameEvents';
+
+export class Player extends Phaser.Physics.Arcade.Sprite {
+  private dimensionSystem: DimensionSystem;
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys & {
+    w: Phaser.Input.Keyboard.Key;
+    a: Phaser.Input.Keyboard.Key;
+    s: Phaser.Input.Keyboard.Key;
+    d: Phaser.Input.Keyboard.Key;
+    space: Phaser.Input.Keyboard.Key;
+  };
+  private speed: number = 200;
+
+  // Sistema de Vida
+  private maxHealth: number = 3;
+  private currentHealth: number = 3;
+
+  // Combate
+  private _attackHitbox!: Phaser.GameObjects.Zone;
+  private lastFacing: 'up' | 'down' | 'left' | 'right' = 'down';
+  private lastAttackTime: number = 0;
+  private attackDelay: number = 500;
+
+  public get attackHitbox(): Phaser.GameObjects.Zone {
+    return this._attackHitbox;
+  }
+
+  constructor(scene: Phaser.Scene, x: number, y: number, dimensionSystem: DimensionSystem) {
+    super(scene, x, y, 'character');
+    this.dimensionSystem = dimensionSystem;
+
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
+
+    // Configuração da Hitbox (baseada no sprite 44x50, focada nos pés)
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setSize(24, 20);
+    body.setOffset(10, 30);
+    body.setCollideWorldBounds(true);
+
+    // Inicialização da Hitbox de Ataque
+    this._attackHitbox = scene.add.zone(x, y, 40, 40);
+    scene.physics.add.existing(this._attackHitbox);
+    (this._attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
+
+    // Inicialização do Input
+    if (scene.input.keyboard) {
+      this.cursors = {
+        ...scene.input.keyboard.createCursorKeys(),
+        w: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+        a: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+        s: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+        d: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+        space: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+      };
+    }
+
+    this.createAnimations();
+    
+    // Emitir estado inicial de vida no próximo frame para garantir que a UI já exista
+    scene.time.delayedCall(10, () => this.emitHealth());
+  }
+
+  private emitHealth(): void {
+    const payload: HealthChangedPayload = {
+      current: this.currentHealth,
+      max: this.maxHealth
+    };
+    this.scene.events.emit(GameEvents.HEALTH_CHANGED, payload);
+  }
+
+  public takeDamage(amount: number): void {
+    if (this.currentHealth <= 0) return;
+
+    this.currentHealth = Math.max(0, this.currentHealth - amount);
+    this.emitHealth();
+
+    // Feedback visual simples
+    this.setTint(0xff0000);
+    this.scene.time.delayedCall(150, () => {
+      this.clearTint();
+    });
+
+    if (this.currentHealth <= 0) {
+      this.die();
+    }
+  }
+
+  private attack(): void {
+    this.lastAttackTime = this.scene.time.now;
+    
+    let hx = this.x;
+    let hy = this.y;
+    const offset = 32;
+
+    if (this.lastFacing === 'left') hx -= offset;
+    else if (this.lastFacing === 'right') hx += offset;
+    else if (this.lastFacing === 'up') hy -= offset;
+    else if (this.lastFacing === 'down') hy += offset;
+
+    this._attackHitbox.setPosition(hx, hy);
+    const body = this._attackHitbox.body as Phaser.Physics.Arcade.Body;
+    body.enable = true;
+
+    // Efeito de ataque (feedback leve do sprite)
+    this.scene.tweens.add({
+      targets: this,
+      x: hx * 0.2 + this.x * 0.8,
+      y: hy * 0.2 + this.y * 0.8,
+      duration: 50,
+      yoyo: true
+    });
+
+    // Desabilita a hitbox logo em seguida
+    this.scene.time.delayedCall(150, () => {
+      body.enable = false;
+    });
+  }
+
+  private die(): void {
+    // Lógica de morte simplificada para esta etapa
+    this.setAngle(90);
+    (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    (this.body as Phaser.Physics.Arcade.Body).enable = false;
+  }
+
+  private createAnimations(): void {
+    if (!this.scene.anims.exists('walk_down')) {
+      this.scene.anims.create({
+        key: 'walk_down',
+        frames: this.scene.anims.generateFrameNumbers('character', { start: 0, end: 3 }),
+        frameRate: 8,
+        repeat: -1
+      });
+    }
+  }
+
+  update(): void {
+    if (this.currentHealth <= 0) return;
+
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    if (!body) return;
+
+    body.setVelocity(0, 0);
+
+    const up = this.cursors.up.isDown || this.cursors.w.isDown;
+    const down = this.cursors.down.isDown || this.cursors.s.isDown;
+    const left = this.cursors.left.isDown || this.cursors.a.isDown;
+    const right = this.cursors.right.isDown || this.cursors.d.isDown;
+
+    if (left) { body.setVelocityX(-this.speed); this.lastFacing = 'left'; }
+    else if (right) { body.setVelocityX(this.speed); this.lastFacing = 'right'; }
+
+    if (up) { body.setVelocityY(-this.speed); this.lastFacing = 'up'; }
+    else if (down) { body.setVelocityY(this.speed); this.lastFacing = 'down'; }
+
+    // Normaliza velocidade para movimento diagonal não ser mais rápido
+    if (body.velocity.length() > 0) {
+      body.velocity.normalize().scale(this.speed);
+      this.play('walk_down', true);
+
+      // Inverte o sprite horizontalmente conforme a direção
+      if (body.velocity.x < 0) this.setFlipX(false);
+      else if (body.velocity.x > 0) this.setFlipX(true);
+    } else {
+      this.stop();
+      this.setFrame(0);
+    }
+
+    if (this.cursors.space.isDown && this.scene.time.now - this.lastAttackTime > this.attackDelay) {
+      this.attack();
+    }
+
+    // Aplica o tom da dimensão (se estiver vivo e sem tint de dano)
+    if (this.currentHealth > 0 && !this.isTinted) {
+      this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+    } else if (this.currentHealth > 0 && this.isTinted && this.tintBottomLeft !== 0xff0000) {
+      this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+    }
+  }
+}

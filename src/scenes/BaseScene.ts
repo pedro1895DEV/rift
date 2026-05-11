@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { DimensionSystem } from '../systems/DimensionSystem';
 import { DimensionUI } from '../systems/DimensionUI';
-import { Player } from '../objects/Player';
+import { Player } from '../entities/Player';
 
 export interface SceneData {
   spawnX?: number;
@@ -79,14 +79,20 @@ export abstract class BaseScene extends Phaser.Scene {
 
   protected getSpawnX(map: Phaser.Tilemaps.Tilemap): number {
     if (this.startData.spawnX !== undefined) return this.startData.spawnX;
-    const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
-    return spawnPoint?.x ?? 400;
+    if (map.getObjectLayer('Objects')) {
+      const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.x ?? 400;
+    }
+    return 400;
   }
 
   protected getSpawnY(map: Phaser.Tilemaps.Tilemap): number {
     if (this.startData.spawnY !== undefined) return this.startData.spawnY;
-    const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
-    return spawnPoint?.y ?? 300;
+    if (map.getObjectLayer('Objects')) {
+      const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.y ?? 300;
+    }
+    return 300;
   }
 
   update(time: number, delta: number): void {

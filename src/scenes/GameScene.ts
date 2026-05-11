@@ -1,7 +1,12 @@
 import Phaser from 'phaser';
 import { BaseScene } from './BaseScene';
+import { HealthUI } from '../ui/HealthUI';
+import { PhaseObjective } from '../systems/PhaseObjective';
 
 export class GameScene extends BaseScene {
+  private healthUI!: HealthUI;
+  private phaseObjective!: PhaseObjective;
+
   constructor() {
     super('GameScene');
   }
@@ -37,16 +42,26 @@ export class GameScene extends BaseScene {
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
+    this.healthUI = new HealthUI(this);
+    this.phaseObjective = new PhaseObjective(this, 0, 0); // Sem requisitos na Fase 1 por enquanto
+
     const portal = this.add.zone(96, 16, 64, 32);
     this.physics.add.existing(portal, true);
 
     this.physics.add.overlap(this.player, portal, () => {
-      if (!this.registry.get('hasSeenEntityIntro')) {
-        this.registry.set('hasSeenEntityIntro', true);
-        this.scene.start('CutsceneScene', { spawnX: 128, spawnY: 1380 });
-      } else {
-        this.scene.start('Phase2Scene', { spawnX: 128, spawnY: 1380 });
+      if (this.phaseObjective.canComplete()) {
+        if (!this.registry.get('hasSeenEntityIntro')) {
+          this.registry.set('hasSeenEntityIntro', true);
+          this.scene.start('CutsceneScene', { spawnX: 128, spawnY: 1380 });
+        } else {
+          this.scene.start('Phase2Scene', { spawnX: 128, spawnY: 1380 });
+        }
       }
+    });
+
+    this.events.once('shutdown', () => {
+      this.healthUI.destroy();
+      this.phaseObjective.destroy();
     });
   }
 }
