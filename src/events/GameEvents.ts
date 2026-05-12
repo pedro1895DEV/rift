@@ -1,7 +1,8 @@
 export enum GameEvents {
   HEALTH_CHANGED = 'HEALTH_CHANGED',
   ORB_COLLECTED = 'ORB_COLLECTED',
-  ENEMY_DIED = 'ENEMY_DIED'
+  ENEMY_DIED = 'ENEMY_DIED',
+  SWORD_FOUND = 'SWORD_FOUND'
 }
 
 export interface HealthChangedPayload {
@@ -19,3 +20,4 @@ export interface EnemyDiedPayload {
   x: number;
   y: number;
 }
+

@@ -22,9 +22,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private lastFacing: 'up' | 'down' | 'left' | 'right' = 'down';
   private lastAttackTime: number = 0;
   private attackDelay: number = 500;
+  private canAttack: boolean = false;
 
   public get attackHitbox(): Phaser.GameObjects.Zone {
     return this._attackHitbox;
+  }
+
+  public setCanAttack(value: boolean): void {
+    this.canAttack = value;
+  }
+
+  public getCanAttack(): boolean {
+    return this.canAttack;
   }
 
   constructor(scene: Phaser.Scene, x: number, y: number, dimensionSystem: DimensionSystem) {
@@ -169,7 +178,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.setFrame(0);
     }
 
-    if (this.cursors.space.isDown && this.scene.time.now - this.lastAttackTime > this.attackDelay) {
+    if (this.canAttack && this.cursors.space.isDown && this.scene.time.now - this.lastAttackTime > this.attackDelay) {
       this.attack();
     }
 
