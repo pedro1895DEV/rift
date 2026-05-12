@@ -29,6 +29,7 @@ export abstract class BaseScene extends Phaser.Scene {
     this.load.image('img_tiles', 'assets/tilesets/tiles.png');
     this.load.image('img_water', 'assets/tilesets/water_animation_demo.png');
     this.load.image('img_assets', 'assets/tilesets/assets.png');
+    this.load.image('img_sword', 'assets/items/sword.png');
     this.load.spritesheet('character', 'assets/characters/character_demo.png', { 
       frameWidth: 44, 
       frameHeight: 50

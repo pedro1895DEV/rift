@@ -11,6 +11,13 @@ export class CutsceneScene extends Phaser.Scene {
     this.playerSpawn = data;
   }
 
+  preload(): void {
+    this.load.spritesheet('entity_idle', 'assets/characters/Idle.png', {
+      frameWidth: 250,
+      frameHeight: 250
+    });
+  }
+
   create(): void {
     const { width, height } = this.scale;
     
@@ -18,17 +25,19 @@ export class CutsceneScene extends Phaser.Scene {
     this.add.rectangle(width/2, height/2, width, height, 0x000000);
 
     // Texto de suspense
-    const text = this.add.text(width/2, height/2 - 50, "Você sente um olhar gélido em suas costas...", {
+    const text = this.add.text(width/2, height/2 - 80, "Você sente um olhar gélido em suas costas...", {
       fontFamily: 'serif',
       fontSize: '16px',
       color: '#ffffff',
       fontStyle: 'italic'
     }).setOrigin(0.5).setAlpha(0);
 
-    // Criando uma representação visual temporária da Entidade (um retângulo preto alto e magro)
-    const entity = this.add.rectangle(width/2, height/2 + 50, 10, 40, 0x000000)
-      .setAlpha(0)
-      .setStrokeStyle(1, 0xff0000); // Contorno vermelho sutil
+    // Substituindo o objeto image por um Sprite com frame específico
+    const entity = this.add.sprite(width/2, height/2 + 50, 'entity_idle', 0)
+      .setAlpha(0.8)
+      .setTint(0x88aaff) // Tom espiritual azulado
+      .setScale(2); // Ajuste de escala conforme necessário
+      // .setDepth(10);
 
     // Sequência da Cutscene
     this.tweens.chain({

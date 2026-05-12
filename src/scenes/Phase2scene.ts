@@ -134,10 +134,10 @@ export class Phase2Scene extends BaseScene {
         chestX = chestObj.x ?? chestX;
         chestY = chestObj.y ?? chestY;
       } else {
-        console.warn('Aviso: Objeto "sword_chest" não encontrado na layer "Objects". Usando fallback.');
+        // console.warn('Aviso: Objeto "sword_chest" não encontrado na layer "Objects". Usando fallback.');
       }
     } else {
-      console.warn('Aviso: Layer "Objects" não encontrada no mapa. Usando fallback.');
+      // console.warn('Aviso: Layer "Objects" não encontrada no mapa. Usando fallback.');
     }
 
     // Objetos inseridos como tile no Tiled geralmente têm a âncora (origin) em bottom-left (0, 1).
