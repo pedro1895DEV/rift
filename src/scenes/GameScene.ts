@@ -41,6 +41,24 @@ export class GameScene extends BaseScene {
     this.physics.add.collider(this.player, camada2);
   }
 
+  protected getSpawnX(map: Phaser.Tilemaps.Tilemap): number {
+    if (this.startData.spawnX !== undefined) return this.startData.spawnX;
+    if (map.getObjectLayer('Objects')) {
+      const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.x ?? 848; // tile 26 * 32 + 16 = 848
+    }
+    return 848;
+  }
+
+  protected getSpawnY(map: Phaser.Tilemaps.Tilemap): number {
+    if (this.startData.spawnY !== undefined) return this.startData.spawnY;
+    if (map.getObjectLayer('Objects')) {
+      const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.y ?? 432; // tile 13 * 32 + 16 = 432
+    }
+    return 432;
+  }
+
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
     this.healthUI = new HealthUI(this);
     this.phaseObjective = new PhaseObjective(this, 0, 0); // Sem requisitos na Fase 1 por enquanto

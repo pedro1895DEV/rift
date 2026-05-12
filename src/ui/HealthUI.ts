@@ -52,7 +52,7 @@ export class HealthUI {
 
   private handleHealthChanged(payload: HealthChangedPayload): void {
     const hearts = '❤'.repeat(payload.current) + '🖤'.repeat(payload.max - payload.current);
-    this.text.setText(`LIFE: ${hearts}`);
+    this.text.setText(`${hearts}`);
   }
 
   public destroy(): void {

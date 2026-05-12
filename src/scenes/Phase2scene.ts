@@ -19,7 +19,11 @@ export class Phase2Scene extends BaseScene {
 
   protected onPreload(): void {
     this.load.tilemapTiledJSON('level2', 'assets/tilesets/mapa2.tmj');
-    this.load.image('img_chest', 'assets/tilesets/chest.png');
+    this.load.spritesheet('chest', 'assets/tilesets/chest.png', {
+      frameWidth: 48,
+      frameHeight: 48
+    });
+    this.load.image('img_grass', 'assets/tilesets/TX Tileset Grass.png');
     this.load.spritesheet('rats', 'assets/tilesets/Rats.png', {
       frameWidth: 48,
       frameHeight: 48
@@ -32,8 +36,9 @@ export class Phase2Scene extends BaseScene {
     const tileset       = map.addTilesetImage('tiles', 'img_tiles')!;
     const waterTileset  = map.addTilesetImage('water_animation_demo', 'img_water')!;
     const assetsTileset = map.addTilesetImage('assets', 'img_assets')!;
+    const grassTileset  = map.addTilesetImage('TX Tileset Grass', 'img_grass')!;
     
-    const todosTilesets = [tileset, waterTileset, assetsTileset];
+    const todosTilesets = [tileset, waterTileset, assetsTileset, grassTileset];
 
     map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
     map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
@@ -121,22 +126,35 @@ export class Phase2Scene extends BaseScene {
     // Baú da espada
     let chestX = 5 * 32 + 16;
     let chestY = 40 * 32 + 16;
-    if (map.getObjectLayer('Objects')) {
-      const chestObj = map.findObject('Objects', obj => obj.name === 'sword_chest');
+    
+    const objectLayer = map.getObjectLayer('Objects');
+    if (objectLayer) {
+      const chestObj = objectLayer.objects.find(o => o.name === 'sword_chest');
       if (chestObj) {
         chestX = chestObj.x ?? chestX;
         chestY = chestObj.y ?? chestY;
+      } else {
+        console.warn('Aviso: Objeto "sword_chest" não encontrado na layer "Objects". Usando fallback.');
       }
+    } else {
+      console.warn('Aviso: Layer "Objects" não encontrada no mapa. Usando fallback.');
     }
-    const chestZone = this.add.zone(chestX, chestY, 48, 48);
+
+    // Objetos inseridos como tile no Tiled geralmente têm a âncora (origin) em bottom-left (0, 1).
+    const chestSprite = this.add.sprite(chestX, chestY, 'chest', 0).setDepth(5).setOrigin(0, 1);
+    const chestZone = this.add.zone(chestX, chestY, 48, 48).setOrigin(0, 1);
     this.physics.add.existing(chestZone, true);
     
     let chestInteracted = hasFoundSword;
+    if (chestInteracted) {
+      chestSprite.setFrame(1);
+    }
     const interactKey = this.input.keyboard!.addKey('E');
 
     this.physics.add.overlap(this.player, chestZone, () => {
       if (!chestInteracted && Phaser.Input.Keyboard.JustDown(interactKey)) {
         chestInteracted = true;
+        chestSprite.setFrame(1);
         this.registry.set('hasFoundSword', true);
         this.player.setCanAttack(true);
         this.events.emit(GameEvents.SWORD_FOUND);
