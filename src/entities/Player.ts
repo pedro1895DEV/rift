@@ -113,11 +113,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const body = this._attackHitbox.body as Phaser.Physics.Arcade.Body;
     body.enable = true;
 
-    this.scene.events.emit(GameEvents.ATTACK_USED);
-
-    // Feedback Visual da Espada
-    this.spawnSwordFx(hx, hy);
-
     // Efeito de ataque (feedback leve do sprite)
     this.scene.tweens.add({
       targets: this,
@@ -130,37 +125,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Desabilita a hitbox logo em seguida
     this.scene.time.delayedCall(150, () => {
       body.enable = false;
-    });
-  }
-
-  private spawnSwordFx(hx: number, hy: number): void {
-    // Guarda defensiva: verifica se textura foi carregada
-    if (!this.scene.textures.exists('img_sword')) {
-      // console.warn('[Player] Textura img_sword não encontrada. Ataque funcionará sem feedback visual.');
-      return;
-    }
-
-    const sword = this.scene.add.image(hx, hy, 'img_sword');
-    sword.setDepth(this.depth + 1);
-
-    // Alinhamento de direção
-    const angles = {
-      'right': 0,
-      'left': 180,
-      'up': -90,
-      'down': 90
-    };
-    sword.setAngle(angles[this.lastFacing]);
-
-    // Tween de sumiço rápido
-    this.scene.tweens.add({
-      targets: sword,
-      alpha: { from: 1, to: 0 },
-      scale: { from: 1, to: 1.2 },
-      duration: 150,
-      onComplete: () => {
-        sword.destroy();
-      }
     });
   }
 

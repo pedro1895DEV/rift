@@ -12,6 +12,8 @@ export class Phase2Scene extends BaseScene {
   private rats!: Phaser.Physics.Arcade.Group;
   private healthUI!: HealthUI;
   private phaseObjective!: PhaseObjective;
+  private isNearChest: boolean = false;
+  private chestZoneRef!: Phaser.GameObjects.Zone;
 
   constructor() {
     super('Phase2Scene');
@@ -113,11 +115,30 @@ export class Phase2Scene extends BaseScene {
 
     this.phaseObjective = new PhaseObjective(this, 1, ratPositions.length);
 
-    const returnPortal = this.add.zone(128, 1424, 64, 32);
+    const objectLayer = map.getObjectLayer('Objects');
+
+    let transitioning = false;
+    let portalX = 1328; // Fallback perto da orbe (41 * 32 + 16)
+    let portalY = 144;
+    
+    if (objectLayer) {
+      const exitObj = objectLayer.objects.find(o => o.name === 'phase2_exit');
+      if (exitObj) {
+        portalX = exitObj.x ?? portalX;
+        portalY = exitObj.y ?? portalY;
+      }
+    }
+
+    // Marcador visual translúcido do portal
+    this.add.rectangle(portalX, portalY, 64, 32, 0x00ffff, 0.4).setDepth(2);
+
+    const returnPortal = this.add.zone(portalX, portalY, 64, 32);
     this.physics.add.existing(returnPortal, true);
     this.physics.add.overlap(this.player, returnPortal, () => {
+      if (transitioning) return;
       if (this.phaseObjective.canComplete()) {
-        this.scene.start('GameScene', { spawnX: 96, spawnY: 64 });
+        transitioning = true;
+        this.scene.start('Phase3Scene', { spawnX: 96, spawnY: 64 });
       } else {
         this.cameras.main.shake(100, 0.01);
       }
@@ -127,7 +148,6 @@ export class Phase2Scene extends BaseScene {
     let chestX = 5 * 32 + 16;
     let chestY = 40 * 32 + 16;
     
-    const objectLayer = map.getObjectLayer('Objects');
     if (objectLayer) {
       const chestObj = objectLayer.objects.find(o => o.name === 'sword_chest');
       if (chestObj) {
@@ -144,6 +164,7 @@ export class Phase2Scene extends BaseScene {
     const chestSprite = this.add.sprite(chestX, chestY, 'chest', 0).setDepth(5).setOrigin(0, 1);
     const chestZone = this.add.zone(chestX, chestY, 48, 48).setOrigin(0, 1);
     this.physics.add.existing(chestZone, true);
+    this.chestZoneRef = chestZone;
     
     let chestInteracted = hasFoundSword;
     if (chestInteracted) {
@@ -151,15 +172,15 @@ export class Phase2Scene extends BaseScene {
     }
     const interactKey = this.input.keyboard!.addKey('E');
 
-    this.physics.add.overlap(this.player, chestZone, () => {
-      if (!chestInteracted && Phaser.Input.Keyboard.JustDown(interactKey)) {
+    interactKey.on('down', () => {
+      if (this.isNearChest && !chestInteracted) {
         chestInteracted = true;
         chestSprite.setFrame(1);
         this.registry.set('hasFoundSword', true);
         this.player.setCanAttack(true);
         this.events.emit(GameEvents.SWORD_FOUND);
         this.showNarrativeDialogue("Uma espada mágica... Isso pode me ajudar.");
-        chestZone.destroy();
+        this.showCombatHint();
       }
     });
 
@@ -215,6 +236,7 @@ export class Phase2Scene extends BaseScene {
   }
 
   protected onUpdate(): void {
+    this.isNearChest = this.chestZoneRef && this.chestZoneRef.active ? this.physics.overlap(this.player, this.chestZoneRef) : false;
     this.rats.getChildren().forEach((rat) => {
       (rat as RatEnemy).update();
     });
