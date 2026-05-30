@@ -10,6 +10,11 @@ export class Phase3Scene extends BaseScene {
   private healthUI!: HealthUI;
   private phaseObjective!: PhaseObjective;
 
+  private camada1!: Phaser.Tilemaps.TilemapLayer;
+  private camada2!: Phaser.Tilemaps.TilemapLayer;
+  private camada3: Phaser.Tilemaps.TilemapLayer | null = null;
+  private lastSafePosition!: Phaser.Math.Vector2;
+
   constructor() {
     super('Phase3Scene');
   }
@@ -41,14 +46,24 @@ export class Phase3Scene extends BaseScene {
   }
 
   protected setupCollisions(map: Phaser.Tilemaps.Tilemap): void {
-    const camada1 = map.getLayer('Camada de Blocos 1')!.tilemapLayer;
-    const camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
+    this.camada1 = map.getLayer('Camada de Blocos 1')!.tilemapLayer;
+    this.camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
+    const layer3 = map.getLayer('Camada de Blocos 3');
+    if (layer3) {
+      this.camada3 = layer3.tilemapLayer;
+    }
 
-    camada1.setCollisionByProperty({ collides: true });
-    camada2.setCollisionByProperty({ collides: true });
+    this.camada1.setCollisionByProperty({ collides: true });
+    this.camada2.setCollisionByProperty({ collides: true });
+    if (this.camada3) {
+      this.camada3.setCollisionByProperty({ collides: true });
+    }
 
-    this.physics.add.collider(this.player, camada1);
-    this.physics.add.collider(this.player, camada2);
+    this.physics.add.collider(this.player, this.camada1);
+    this.physics.add.collider(this.player, this.camada2);
+    if (this.camada3) {
+      this.physics.add.collider(this.player, this.camada3);
+    }
   }
 
   private showNarrativeDialogue(textMsg: string): void {
@@ -104,6 +119,9 @@ export class Phase3Scene extends BaseScene {
       this.dimensionSystem.switch();
     }
 
+    // Inicializar o checkpoint do jogador
+    this.lastSafePosition = new Phaser.Math.Vector2(this.player.x, this.player.y);
+
     // Objetivo da fase: 2 Orbes, 0 Kills
     this.phaseObjective = new PhaseObjective(this, 2, 0);
 
@@ -149,7 +167,7 @@ export class Phase3Scene extends BaseScene {
         this.events.emit(GameEvents.ORB_COLLECTED, { current: this.phaseObjective.currentOrbs + 1, required: this.phaseObjective.requiredOrbs });
         
         if (this.phaseObjective.currentOrbs >= this.phaseObjective.requiredOrbs) {
-          this.showNarrativeDialogue("Estou me lembrando... Eu entrei nessa floresta de propósito. Mas por quê");
+          this.showNarrativeDialogue("Estou me lembrando... Eu vim aqui por escolha. Mas por quê");
         }
       } else {
         this.cameras.main.shake(100, 0.01);
@@ -182,9 +200,7 @@ export class Phase3Scene extends BaseScene {
     const updateEntityVisibility = () => {
       entity.setVisible(this.dimensionSystem.isSpirit);
     };
-    // The DimensionSystem does not export the specific event key directly beyond what we used in other places. 
-    // We can use the EVENTS object or GameEvents depending on refactor state.
-    // In DimensionSystem.ts we see it uses `EVENTS.DIMENSION_CHANGED`. Let's just listen to that string.
+    
     this.events.on('dimensionChanged', updateEntityVisibility);
 
     this.events.once('shutdown', () => {
@@ -192,5 +208,30 @@ export class Phase3Scene extends BaseScene {
       this.phaseObjective.destroy();
       this.events.off('dimensionChanged', updateEntityVisibility);
     });
+  }
+
+  protected onUpdate(time: number, delta: number): void {
+    if (!this.player || !this.player.active) return;
+    
+    const px = this.player.x;
+    const py = this.player.y + 16; // Pés do personagem
+
+    const tile1 = this.camada1.getTileAtWorldXY(px, py);
+    const tile2 = this.camada2.getTileAtWorldXY(px, py);
+    const tile3 = this.camada3 ? this.camada3.getTileAtWorldXY(px, py) : null;
+
+    const isDeadly = (tile1 && tile1.properties.deadly) || 
+                     (tile2 && tile2.properties.deadly) || 
+                     (tile3 && tile3.properties.deadly);
+
+    if (!this.dimensionSystem.isSpirit) {
+      if (isDeadly) {
+        this.player.setPosition(this.lastSafePosition.x, this.lastSafePosition.y);
+        (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+        this.cameras.main.shake(100, 0.02);
+      } else {
+        this.lastSafePosition.set(this.player.x, this.player.y);
+      }
+    }
   }
 }
