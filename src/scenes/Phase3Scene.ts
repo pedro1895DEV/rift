@@ -13,6 +13,7 @@ export class Phase3Scene extends BaseScene {
   private camada1!: Phaser.Tilemaps.TilemapLayer;
   private camada2!: Phaser.Tilemaps.TilemapLayer;
   private camada3: Phaser.Tilemaps.TilemapLayer | null = null;
+  private riverLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   private lastSafePosition!: Phaser.Math.Vector2;
 
   constructor() {
@@ -30,17 +31,18 @@ export class Phase3Scene extends BaseScene {
 
   protected createMap(): Phaser.Tilemaps.Tilemap {
     const map = this.make.tilemap({ key: 'level3' });
-
     const imprTileset = map.addTilesetImage('imprtileset', 'img_impr')!;
-    
     const todosTilesets = [imprTileset];
 
-    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
-    map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
+    // Ordem inversa ao Tiled (de baixo pra cima)
+    map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais atrás
     
-    if (map.getLayer('Camada de Blocos 3')) {
-      map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0);
+    if (map.getLayer('Camada do Rio')) {
+      map.createLayer('Camada do Rio', todosTilesets, 0, 0);
     }
+
+    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
+    map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0); // mais na frente
 
     return map;
   }
@@ -48,21 +50,26 @@ export class Phase3Scene extends BaseScene {
   protected setupCollisions(map: Phaser.Tilemaps.Tilemap): void {
     this.camada1 = map.getLayer('Camada de Blocos 1')!.tilemapLayer;
     this.camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
+    
     const layer3 = map.getLayer('Camada de Blocos 3');
-    if (layer3) {
-      this.camada3 = layer3.tilemapLayer;
-    }
+    if (layer3) this.camada3 = layer3.tilemapLayer;
+    
+    const river = map.getLayer('Camada do Rio');
+    if (river) this.riverLayer = river.tilemapLayer;
 
-    this.camada1.setCollisionByProperty({ collides: true });
+    // Só colide nas camadas certas
     this.camada2.setCollisionByProperty({ collides: true });
-    if (this.camada3) {
-      this.camada3.setCollisionByProperty({ collides: true });
+    
+    if (this.riverLayer) {
+      // Rio começa sem colisão (fase inicia no espiritual)
+      this.riverLayer.setCollisionByProperty({ collides: true }, false);
     }
 
-    this.physics.add.collider(this.player, this.camada1);
+    // Colliders apenas com camada 2 e rio
     this.physics.add.collider(this.player, this.camada2);
-    if (this.camada3) {
-      this.physics.add.collider(this.player, this.camada3);
+    
+    if (this.riverLayer) {
+      this.physics.add.collider(this.player, this.riverLayer);
     }
   }
 
@@ -196,17 +203,21 @@ export class Phase3Scene extends BaseScene {
       repeat: -1
     });
 
-    // Atualiza visibilidade da entidade conforme dimensão
-    const updateEntityVisibility = () => {
+    // Atualiza visibilidade da entidade conforme dimensão e colisão do rio
+    const updateDimensionState = () => {
       entity.setVisible(this.dimensionSystem.isSpirit);
+      if (this.riverLayer) {
+        // No mundo espiritual (true), não colide (false). No mundo real (false), colide (true).
+        this.riverLayer.setCollisionByProperty({ collides: true }, !this.dimensionSystem.isSpirit);
+      }
     };
     
-    this.events.on('dimensionChanged', updateEntityVisibility);
+    this.events.on('dimensionChanged', updateDimensionState);
 
     this.events.once('shutdown', () => {
       this.healthUI.destroy();
       this.phaseObjective.destroy();
-      this.events.off('dimensionChanged', updateEntityVisibility);
+      this.events.off('dimensionChanged', updateDimensionState);
     });
   }
 
@@ -219,10 +230,12 @@ export class Phase3Scene extends BaseScene {
     const tile1 = this.camada1.getTileAtWorldXY(px, py);
     const tile2 = this.camada2.getTileAtWorldXY(px, py);
     const tile3 = this.camada3 ? this.camada3.getTileAtWorldXY(px, py) : null;
+    const tileRiver = this.riverLayer ? this.riverLayer.getTileAtWorldXY(px, py) : null;
 
     const isDeadly = (tile1 && tile1.properties.deadly) || 
                      (tile2 && tile2.properties.deadly) || 
-                     (tile3 && tile3.properties.deadly);
+                     (tile3 && tile3.properties.deadly) ||
+                     (tileRiver && tileRiver.properties.deadly);
 
     if (!this.dimensionSystem.isSpirit) {
       if (isDeadly) {
