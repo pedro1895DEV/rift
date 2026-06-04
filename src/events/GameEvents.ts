@@ -3,7 +3,8 @@ export enum GameEvents {
   ORB_COLLECTED = 'ORB_COLLECTED',
   ENEMY_DIED = 'ENEMY_DIED',
   SWORD_FOUND = 'SWORD_FOUND',
-  ATTACK_USED = 'ATTACK_USED'
+  ATTACK_USED = 'ATTACK_USED',
+  ENTITY_PHASE_CHANGED = 'ENTITY_PHASE_CHANGED'
 }
 
 export interface HealthChangedPayload {
