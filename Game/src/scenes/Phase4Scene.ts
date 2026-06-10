@@ -143,20 +143,14 @@ export class Phase4Scene extends BaseScene {
         }
       }
 
-      const zone = this.add.zone(pX, pY, 64, 64);
-      this.physics.add.existing(zone, true);
-      
       const marker = this.add.rectangle(pX, pY, 64, 64, 0xff00ff, 0.4).setDepth(2);
-      
-      let isNear = false;
       let sealed = false;
 
-      this.physics.add.overlap(this.player, zone, () => {
-        isNear = true;
-      });
-
       interactKey.on('down', () => {
-        if (isNear && !sealed && this.dimensionSystem.isSpirit) {
+        // Verificar distância NO MOMENTO de apertar E (não confiar em flags de overlap)
+        const distToPortal = Phaser.Math.Distance.Between(this.player.x, this.player.y, pX, pY);
+        
+        if (distToPortal < 64 && !sealed && this.dimensionSystem.isSpirit) {
           sealed = true;
           this.portalsSealed++;
           marker.fillColor = 0x00ff00; // Verde
@@ -169,12 +163,7 @@ export class Phase4Scene extends BaseScene {
             this.showNarrativeDialogue("Último portal. É agora.");
             this.finishPhase();
           }
-          zone.destroy();
         }
-      });
-      
-      this.events.on('update', () => {
-        isNear = false;
       });
     });
 
@@ -195,46 +184,5 @@ export class Phase4Scene extends BaseScene {
   protected onUpdate(time: number, delta: number): void {
     if (!this.player || !this.player.active) return;
     if (this.entity) this.entity.update();
-  }
-
-  private showNarrativeDialogue(textMsg: string): void {
-    this.isDialogueActive = true;
-    (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
-    this.player.stop();
-
-    const cam = this.cameras.main;
-    const zoom = cam.zoom;
-    const w = cam.width;
-    const h = cam.height;
-
-    const centerX = w / 2;
-    const visibleBottomY = (h / 2) + ((h / 2) / zoom);
-    const boxWidth  = (w * 0.8) / zoom;
-    const boxHeight = 80 / zoom;
-    const yPos = visibleBottomY - (boxHeight / 2) - (10 / zoom);
-
-    const bg = this.add.rectangle(centerX, yPos, boxWidth, boxHeight, 0x000000, 0.8)
-      .setScrollFactor(0)
-      .setDepth(100);
-
-    const text = this.add.text(centerX, yPos, textMsg, {
-      fontFamily: 'monospace',
-      fontSize: '32px',
-      color: '#ffffff',
-      align: 'center',
-      stroke: '#000000',
-      strokeThickness: 4,
-      lineSpacing: 6,
-      wordWrap: { width: boxWidth * zoom }
-    }).setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(101)
-      .setScale(1 / zoom);
-
-    this.input.keyboard!.once('keydown-SPACE', () => {
-      bg.destroy();
-      text.destroy();
-      this.isDialogueActive = false;
-    });
   }
 }

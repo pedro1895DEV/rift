@@ -59,47 +59,6 @@ export class Phase2Scene extends BaseScene {
     this.physics.add.collider(this.player, camada2);
   }
 
-  private showNarrativeDialogue(textMsg: string): void {
-    this.isDialogueActive = true;
-    (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
-    this.player.stop();
-
-    const cam = this.cameras.main;
-    const zoom = cam.zoom;
-    const w = cam.width;
-    const h = cam.height;
-
-    const centerX = w / 2;
-    const visibleBottomY = (h / 2) + ((h / 2) / zoom);
-    const boxWidth  = (w * 0.8) / zoom;
-    const boxHeight = 80 / zoom;
-    const yPos = visibleBottomY - (boxHeight / 2) - (10 / zoom);
-
-    const bg = this.add.rectangle(centerX, yPos, boxWidth, boxHeight, 0x000000, 0.8)
-      .setScrollFactor(0)
-      .setDepth(100);
-
-    const text = this.add.text(centerX, yPos, textMsg, {
-      fontFamily: 'monospace',
-      fontSize: '32px',
-      color: '#ffffff',
-      align: 'center',
-      stroke: '#000000',
-      strokeThickness: 4,
-      lineSpacing: 6,
-      wordWrap: { width: boxWidth * zoom }
-    }).setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(101)
-      .setScale(1 / zoom);
-
-    this.input.keyboard!.once('keydown-SPACE', () => {
-      bg.destroy();
-      text.destroy();
-      this.isDialogueActive = false;
-    });
-  }
-
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
     this.healthUI = new HealthUI(this);
 

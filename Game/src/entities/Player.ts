@@ -23,6 +23,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private lastAttackTime: number = 0;
   private attackDelay: number = 500;
   private canAttack: boolean = false;
+  private isCurrentlyTinted: boolean = false;
+  private isInvulnerable: boolean = false;
 
   public get attackHitbox(): Phaser.GameObjects.Zone {
     return this._attackHitbox;
@@ -82,14 +84,38 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public takeDamage(amount: number): void {
     if (this.currentHealth <= 0) return;
+    if (this.isInvulnerable) return;
 
     this.currentHealth = Math.max(0, this.currentHealth - amount);
     this.emitHealth();
 
+    // Ativar invulnerabilidade
+    this.isInvulnerable = true;
+
     // Feedback visual simples
     this.setTint(0xff0000);
+    this.isCurrentlyTinted = true;
     this.scene.time.delayedCall(150, () => {
       this.clearTint();
+      this.isCurrentlyTinted = false;
+    });
+
+    // Efeito de piscagem durante invulnerabilidade
+    const blinkTween = this.scene.tweens.add({
+      targets: this,
+      alpha: 0.4,
+      duration: 100,
+      repeat: 7,
+      yoyo: true
+    });
+
+    // Remover invulnerabilidade após 1500ms
+    this.scene.time.delayedCall(1500, () => {
+      this.isInvulnerable = false;
+      if (blinkTween.isActive()) {
+        blinkTween.stop();
+      }
+      this.setAlpha(1);
     });
 
     if (this.currentHealth <= 0) {
@@ -183,10 +209,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Aplica o tom da dimensão (se estiver vivo e sem tint de dano)
-    if (this.currentHealth > 0 && !this.isTinted) {
+    if (this.currentHealth > 0 && !this.isCurrentlyTinted) {
       this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
-    } else if (this.currentHealth > 0 && this.isTinted && this.tintBottomLeft !== 0xff0000) {
-      this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+    } else if (this.currentHealth > 0 && this.isCurrentlyTinted) {
+      // Manter tint de dano até ser limpo no callback
     }
   }
 }
