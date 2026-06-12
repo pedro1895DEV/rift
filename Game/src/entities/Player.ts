@@ -72,6 +72,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     
     // Emitir estado inicial de vida no próximo frame para garantir que a UI já exista
     scene.time.delayedCall(10, () => this.emitHealth());
+
+    // Otimização de Tint: Ouvir mudança de dimensão em vez de verificar a cada frame
+    this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+    this.scene.events.on(GameEvents.DIMENSION_CHANGED, () => {
+      if (this.currentHealth > 0 && !this.isCurrentlyTinted) {
+        this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+      }
+    });
   }
 
   private emitHealth(): void {
@@ -98,6 +106,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.time.delayedCall(150, () => {
       this.clearTint();
       this.isCurrentlyTinted = false;
+      if (this.currentHealth > 0) {
+        this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+      }
     });
 
     // Efeito de piscagem durante invulnerabilidade
@@ -206,13 +217,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (this.canAttack && this.cursors.space.isDown && this.scene.time.now - this.lastAttackTime > this.attackDelay) {
       this.attack();
-    }
-
-    // Aplica o tom da dimensão (se estiver vivo e sem tint de dano)
-    if (this.currentHealth > 0 && !this.isCurrentlyTinted) {
-      this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
-    } else if (this.currentHealth > 0 && this.isCurrentlyTinted) {
-      // Manter tint de dano até ser limpo no callback
     }
   }
 }

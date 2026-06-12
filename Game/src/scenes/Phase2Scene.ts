@@ -21,11 +21,27 @@ export class Phase2Scene extends BaseScene {
 
   protected onPreload(): void {
     this.load.tilemapTiledJSON('level2', 'assets/tilesets/mapa2.tmj');
-    this.load.spritesheet('chest', 'assets/tilesets/chest.png', {
-      frameWidth: 48,
-      frameHeight: 48
-    });
+
+    // Carregar todas as imagens de tileset usadas no mapa2.tmj
+    this.load.image('img_tiles', 'assets/tilesets/tiles.png');
+    this.load.image('img_water', 'assets/tilesets/water_animation_demo.png');
+    this.load.image('img_assets', 'assets/tilesets/assets.png');
     this.load.image('img_grass', 'assets/tilesets/TX Tileset Grass.png');
+    this.load.image('img_props', 'assets/tilesets/TX Props.png');
+    this.load.image('img_plant_shadow', 'assets/tilesets/TX Plant with Shadow.png');
+    this.load.image('img_props_shadow', 'assets/tilesets/TX Props with Shadow.png');
+    this.load.image('img_wall', 'assets/tilesets/TX Tileset Wall.png');
+    this.load.image('img_plant', 'assets/tilesets/TX Plant.png');
+
+    // Imagens dedicadas para uso como tileset no mapa
+    // this.load.image('img_chest_tileset', 'assets/tilesets/chest.png');
+    this.load.image('img_rats_tileset', 'assets/tilesets/Rats.png');
+
+    // Spritesheets interativos mantidos em chaves separadas
+    // this.load.spritesheet('chest', 'assets/tilesets/chest.png', {
+    //   frameWidth: 34,
+    //   frameHeight: 36
+    // });
     this.load.spritesheet('rats', 'assets/tilesets/Rats.png', {
       frameWidth: 48,
       frameHeight: 48
@@ -39,24 +55,46 @@ export class Phase2Scene extends BaseScene {
     const waterTileset  = map.addTilesetImage('water_animation_demo', 'img_water')!;
     const assetsTileset = map.addTilesetImage('assets', 'img_assets')!;
     const grassTileset  = map.addTilesetImage('TX Tileset Grass', 'img_grass')!;
-    
-    const todosTilesets = [tileset, waterTileset, assetsTileset, grassTileset];
+    const propsTileset  = map.addTilesetImage('TX Props', 'img_props')!;
+    const plantShadowTileset = map.addTilesetImage('TX Plant with Shadow', 'img_plant_shadow')!;
+    const propsShadowTileset = map.addTilesetImage('TX Props with Shadow', 'img_props_shadow')!;
+    const wallTileset   = map.addTilesetImage('TX Tileset Wall', 'img_wall')!;
+    const plantTileset  = map.addTilesetImage('TX Plant', 'img_plant')!;
+    const chestTileset  = map.addTilesetImage('Chest_spritesheet', 'img_chest_tileset')!;
+    const ratsTileset   = map.addTilesetImage('Rats', 'img_rats_tileset')!;
 
-    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
-    map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
+    const todosTilesets = [tileset, waterTileset, assetsTileset, grassTileset, propsTileset, plantShadowTileset, propsShadowTileset, wallTileset, plantTileset, chestTileset, ratsTileset];
+map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0); // mais atrás no Tiled
+map.createLayer('Camada de Blocos 4', todosTilesets, 0, 0);
+map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
+map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no Tiled
+    // map.createObjectLayer('Objects', todosTilesets, 0, 0);
 
     return map;
   }
 
   protected setupCollisions(map: Phaser.Tilemaps.Tilemap): void {
-    const camada1 = map.getLayer('Camada de Blocos 1')!.tilemapLayer;
-    const camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
+    const camada1 = map.getLayer('Camada de Blocos 1')?.tilemapLayer;
+    const camada2 = map.getLayer('Camada de Blocos 2')?.tilemapLayer;
+    const camada3 = map.getLayer('Camada de Blocos 3')?.tilemapLayer;
+    const camada4 = map.getLayer('Camada de Blocos 4')?.tilemapLayer;
 
-    camada1.setCollisionByProperty({ collides: true });
-    camada2.setCollisionByProperty({ collides: true });
-
-    this.physics.add.collider(this.player, camada1);
-    this.physics.add.collider(this.player, camada2);
+    if (camada1) {
+      camada1.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, camada1);
+    }
+    if (camada2) {
+      camada2.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, camada2);
+    }
+    if (camada3) {
+      camada3.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, camada3);
+    }
+    if (camada4) {
+      camada4.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, camada4);
+    }
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
@@ -120,8 +158,8 @@ export class Phase2Scene extends BaseScene {
     }
 
     // Objetos inseridos como tile no Tiled geralmente têm a âncora (origin) em bottom-left (0, 1).
-    const chestSprite = this.add.sprite(chestX, chestY, 'chest', 0).setDepth(5).setOrigin(0, 1);
-    const chestZone = this.add.zone(chestX, chestY, 48, 48).setOrigin(0, 1);
+    const chestSprite = this.add.sprite(chestX, chestY, 'chest', 0).setDepth(5).setOrigin(0.5, 0.5);
+    const chestZone = this.add.zone(chestX, chestY, 64, 64).setOrigin(0.5, 0.5);
     this.physics.add.existing(chestZone, true);
     this.chestZoneRef = chestZone;
     
@@ -138,8 +176,7 @@ export class Phase2Scene extends BaseScene {
         this.registry.set('hasFoundSword', true);
         this.player.setCanAttack(true);
         this.events.emit(GameEvents.SWORD_FOUND);
-        this.showNarrativeDialogue("Uma espada mágica... Isso pode me ajudar.");
-        this.showCombatHint();
+        this.showNarrativeDialogue("Uma espada mágica... Isso pode me ajudar.\nUse ESPAÇO para atacar os inimigos.");
       }
     });
 
