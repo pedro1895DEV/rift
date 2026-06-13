@@ -26,6 +26,7 @@ export class GameScene extends BaseScene {
 
     map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
     map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
+    map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0);
 
     return map;
   }
@@ -33,12 +34,14 @@ export class GameScene extends BaseScene {
   protected setupCollisions(map: Phaser.Tilemaps.Tilemap): void {
     const camada1 = map.getLayer('Camada de Blocos 1')!.tilemapLayer;
     const camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
-
+    const camada3 = map.getLayer('Camada de Blocos 3')!.tilemapLayer;
     camada1.setCollisionByProperty({ collides: true });
     camada2.setCollisionByProperty({ collides: true });
+    camada3.setCollisionByProperty({ collides: true });
 
     this.physics.add.collider(this.player, camada1);
     this.physics.add.collider(this.player, camada2);
+    this.physics.add.collider(this.player, camada3);
   }
 
   protected getSpawnX(map: Phaser.Tilemaps.Tilemap): number {
