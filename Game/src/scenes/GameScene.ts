@@ -15,6 +15,24 @@ export class GameScene extends BaseScene {
     super('GameScene');
   }
 
+  protected getSpawnX(map: Phaser.Tilemaps.Tilemap): number {
+    if (this.startData.spawnX !== undefined) return this.startData.spawnX;
+    if (map.getObjectLayer('Camada de Objetos 1')) {
+      const spawnPoint = map.findObject('Camada de Objetos 1', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.x ?? 400;
+    }
+    return 400;
+  }
+
+  protected getSpawnY(map: Phaser.Tilemaps.Tilemap): number {
+    if (this.startData.spawnY !== undefined) return this.startData.spawnY;
+    if (map.getObjectLayer('Camada de Objetos 1')) {
+      const spawnPoint = map.findObject('Camada de Objetos 1', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.y ?? 300;
+    }
+    return 300;
+  }
+
   protected onPreload(): void {
     this.load.tilemapTiledJSON('level1', 'assets/tilesets/mapa.tmj');
 
@@ -96,11 +114,16 @@ export class GameScene extends BaseScene {
     });
 
     // Tutorial — detecta objeto no Tiled e dispara diálogo uma vez
-    const tutorialObj = map.findObject('Objects', o => o.name === 'tutorial_trigger');
+    const tutorialObj = map.findObject('Camada de Objetos 1', o => o.name === 'tutorial_trigger');
     if (tutorialObj) {
       const tutX = tutorialObj.x ?? 0;
       const tutY = tutorialObj.y ?? 0;
-      const tutZone = this.add.zone(tutX, tutY, 80, 80);
+      const tutWidth = tutorialObj.width ?? 80;
+      const tutHeight = tutorialObj.height ?? 80;
+      
+      // Tiled define a coordenada (x,y) de um retângulo no canto superior esquerdo.
+      // O Phaser adiciona a zona no centro por padrão. Precisamos ajustar.
+      const tutZone = this.add.zone(tutX + (tutWidth / 2), tutY + (tutHeight / 2), tutWidth, tutHeight);
       this.physics.add.existing(tutZone, true);
       let tutorialShown = false;
       this.physics.add.overlap(this.player, tutZone, () => {

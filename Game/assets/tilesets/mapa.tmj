@@ -41,6 +41,42 @@
          "y":0
         }, 
         {
+         "draworder":"topdown",
+         "id":6,
+         "name":"Camada de Objetos 1",
+         "objects":[
+                {
+                 "height":0,
+                 "id":1,
+                 "name":"Spawn Point",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":782.5,
+                 "y":472
+                }, 
+                {
+                 "height":29.8181818181818,
+                 "id":6,
+                 "name":"tutorial_trigger",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":174.121212121212,
+                 "x":690.666666666849,
+                 "y":318.363636363636
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -133,8 +169,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":1,
+ "nextlayerid":7,
+ "nextobjectid":9,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",
