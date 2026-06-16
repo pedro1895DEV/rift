@@ -34,14 +34,9 @@ export class Phase2Scene extends BaseScene {
     this.load.image('img_plant', 'assets/tilesets/TX Plant.png');
 
     // Imagens dedicadas para uso como tileset no mapa
-    // this.load.image('img_chest_tileset', 'assets/tilesets/chest.png');
+    this.load.image('img_chest_tileset', 'assets/tilesets/chest.png');
     this.load.image('img_rats_tileset', 'assets/tilesets/Rats.png');
 
-    // Spritesheets interativos mantidos em chaves separadas
-    // this.load.spritesheet('chest', 'assets/tilesets/chest.png', {
-    //   frameWidth: 34,
-    //   frameHeight: 36
-    // });
     this.load.spritesheet('rats', 'assets/tilesets/Rats.png', {
       frameWidth: 48,
       frameHeight: 48
@@ -158,21 +153,17 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
     }
 
     // Objetos inseridos como tile no Tiled geralmente têm a âncora (origin) em bottom-left (0, 1).
-    const chestSprite = this.add.sprite(chestX, chestY, 'chest', 0).setDepth(5).setOrigin(0.5, 0.5);
     const chestZone = this.add.zone(chestX, chestY, 64, 64).setOrigin(0.5, 0.5);
     this.physics.add.existing(chestZone, true);
     this.chestZoneRef = chestZone;
     
     let chestInteracted = hasFoundSword;
-    if (chestInteracted) {
-      chestSprite.setFrame(1);
-    }
+
     const interactKey = this.input.keyboard!.addKey('E');
 
     interactKey.on('down', () => {
       if (this.isNearChest && !chestInteracted) {
         chestInteracted = true;
-        chestSprite.setFrame(1);
         this.registry.set('hasFoundSword', true);
         this.player.setCanAttack(true);
         this.events.emit(GameEvents.SWORD_FOUND);
