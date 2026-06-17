@@ -15,6 +15,24 @@ export class Phase4Scene extends BaseScene {
     super('Phase4Scene');
   }
 
+  protected getSpawnX(map: Phaser.Tilemaps.Tilemap): number {
+    if (this.startData.spawnX !== undefined) return this.startData.spawnX;
+    if (map.getObjectLayer('Objects')) {
+      const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.x ?? 400;
+    }
+    return 400;
+  }
+
+  protected getSpawnY(map: Phaser.Tilemaps.Tilemap): number {
+    if (this.startData.spawnY !== undefined) return this.startData.spawnY;
+    if (map.getObjectLayer('Objects')) {
+      const spawnPoint = map.findObject('Objects', obj => obj.name === 'Spawn Point');
+      return spawnPoint?.y ?? 300;
+    }
+    return 300;
+  }
+
   protected onPreload(): void {
     this.load.tilemapTiledJSON('level4', 'assets/tilesets/mapa4.tmj');
     

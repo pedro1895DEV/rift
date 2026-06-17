@@ -120,7 +120,7 @@ export class Phase3Scene extends BaseScene {
     this.physics.add.existing(returnPortal, true);
     this.physics.add.overlap(this.player, returnPortal, () => {
       if (this.phaseObjective.canComplete()) {
-        this.scene.start('Phase4Scene', { spawnX: 96, spawnY: 64 });
+        this.scene.start('Phase4Scene');
       } else {
         this.cameras.main.shake(100, 0.01);
       }
