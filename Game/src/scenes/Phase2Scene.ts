@@ -41,6 +41,11 @@ export class Phase2Scene extends BaseScene {
       frameWidth: 48,
       frameHeight: 48
     });
+
+    this.load.spritesheet('purple_portal', 'assets/tilesets/Purple%20Portal%20Sprite%20Sheet.png', {
+      frameWidth: 64,
+      frameHeight: 64
+    });
   }
 
   protected createMap(): Phaser.Tilemaps.Tilemap {
@@ -121,8 +126,13 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
       }
     }
 
-    // Marcador visual translúcido do portal
-    this.add.rectangle(portalX, portalY, 64, 32, 0x00ffff, 0.4).setDepth(2);
+    this.anims.create({
+      key: 'portal_idle',
+      frames: this.anims.generateFrameNumbers('purple_portal', { start: 0, end: 7 }),
+      frameRate: 60,
+      repeat: -1
+    });
+    this.add.sprite(portalX, portalY, 'purple_portal').setDepth(2).play('portal_idle');
 
     const returnPortal = this.add.zone(portalX, portalY, 64, 32);
     this.physics.add.existing(returnPortal, true);
