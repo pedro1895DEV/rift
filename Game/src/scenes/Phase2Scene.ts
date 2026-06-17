@@ -129,7 +129,7 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
     this.anims.create({
       key: 'portal_idle',
       frames: this.anims.generateFrameNumbers('purple_portal', { start: 0, end: 7 }),
-      frameRate: 60,
+      frameRate: 15,
       repeat: -1
     });
     this.add.sprite(portalX, portalY, 'purple_portal').setDepth(2).play('portal_idle');

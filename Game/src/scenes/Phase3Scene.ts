@@ -27,6 +27,10 @@ export class Phase3Scene extends BaseScene {
       frameWidth: 44,
       frameHeight: 50
     });
+    this.load.spritesheet('purple_portal', 'assets/tilesets/Purple%20Portal%20Sprite%20Sheet.png', {
+      frameWidth: 64,
+      frameHeight: 64
+    });
   }
 
   protected createMap(): Phaser.Tilemaps.Tilemap {
@@ -103,6 +107,15 @@ export class Phase3Scene extends BaseScene {
         portalY = portalObj.y ?? portalY;
       }
     }
+
+    this.anims.create({
+      key: 'portal_idle_3',
+      frames: this.anims.generateFrameNumbers('purple_portal', { start: 0, end: 7 }),
+      frameRate: 15,
+      repeat: -1
+    });
+    this.add.sprite(portalX, portalY, 'purple_portal').setDepth(2).play('portal_idle_3');
+
     const returnPortal = this.add.zone(portalX, portalY, 64, 64);
     this.physics.add.existing(returnPortal, true);
     this.physics.add.overlap(this.player, returnPortal, () => {
