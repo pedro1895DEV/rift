@@ -34,6 +34,10 @@ export class Phase4Scene extends BaseScene {
       frameWidth: 44,
       frameHeight: 50
     });
+    this.load.spritesheet('green_portal', 'assets/tilesets/Green%20Portal%20Sprite%20Sheet.png', {
+      frameWidth: 64,
+      frameHeight: 64
+    });
   }
 
   protected createMap(): Phaser.Tilemaps.Tilemap {
@@ -130,8 +134,15 @@ export class Phase4Scene extends BaseScene {
     });
 
     // Configurar Portais
-    const portalNames = ['Portal 1', 'Portal 2', 'Portal 3'];
+    const portalNames = ['Portal1', 'Portal2', 'Portal3'];
     const interactKey = this.input.keyboard!.addKey('E');
+
+    this.anims.create({
+      key: 'portal_idle_4',
+      frames: this.anims.generateFrameNumbers('green_portal', { start: 0, end: 7 }),
+      frameRate: 15,
+      repeat: -1
+    });
 
     portalNames.forEach((name, index) => {
       let pX = 200 + index * 150, pY = 200;
@@ -143,7 +154,7 @@ export class Phase4Scene extends BaseScene {
         }
       }
 
-      const marker = this.add.rectangle(pX, pY, 64, 64, 0xff00ff, 0.4).setDepth(2);
+      const portalSprite = this.add.sprite(pX, pY, 'green_portal').setDepth(2).play('portal_idle_4');
       let sealed = false;
 
       interactKey.on('down', () => {
@@ -153,7 +164,7 @@ export class Phase4Scene extends BaseScene {
         if (distToPortal < 64 && !sealed && this.dimensionSystem.isSpirit) {
           sealed = true;
           this.portalsSealed++;
-          marker.fillColor = 0x00ff00; // Verde
+          portalSprite.setTint(0x00ff00); // Verde
           
           if (this.portalsSealed === 1) {
             this.showNarrativeDialogue("Primeiro portal selado. A floresta está enfraquecendo.");
