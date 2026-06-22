@@ -14,6 +14,8 @@ export class Phase2Scene extends BaseScene {
   private phaseObjective!: PhaseObjective;
   private isNearChest: boolean = false;
   private chestZoneRef!: Phaser.GameObjects.Zone;
+  private chestInteracted: boolean = false;
+  private interactHint!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Phase2Scene');
@@ -166,14 +168,23 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
     const chestZone = this.add.zone(chestX, chestY, 64, 64).setOrigin(0.5, 0.5);
     this.physics.add.existing(chestZone, true);
     this.chestZoneRef = chestZone;
-    
-    let chestInteracted = hasFoundSword;
+
+    this.chestInteracted = hasFoundSword;
+
+    this.interactHint = this.add.text(chestX, chestY - 40, 'Pressione a tecla [E]', {
+      fontFamily: 'monospace',
+      fontSize: '16px',
+      color: '#ffff00',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(6).setVisible(false);
 
     const interactKey = this.input.keyboard!.addKey('E');
 
     interactKey.on('down', () => {
-      if (this.isNearChest && !chestInteracted) {
-        chestInteracted = true;
+      if (this.isNearChest && !this.chestInteracted) {
+        this.chestInteracted = true;
+        this.interactHint.setVisible(false);
         this.registry.set('hasFoundSword', true);
         this.player.setCanAttack(true);
         this.events.emit(GameEvents.SWORD_FOUND);
@@ -234,6 +245,7 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
 
   protected onUpdate(): void {
     this.isNearChest = this.chestZoneRef && this.chestZoneRef.active ? this.physics.overlap(this.player, this.chestZoneRef) : false;
+    this.interactHint.setVisible(this.isNearChest && !this.chestInteracted);
     this.rats.getChildren().forEach((rat) => {
       (rat as RatEnemy).update();
     });

@@ -41,11 +41,12 @@ export class Phase3Scene extends BaseScene {
     // Ordem inversa ao Tiled (de baixo pra cima)
     map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais atrás
     
+    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
+
     if (map.getLayer('Camada do Rio')) {
       map.createLayer('Camada do Rio', todosTilesets, 0, 0);
     }
 
-    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
     map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0); // mais na frente
 
     return map;
@@ -67,6 +68,7 @@ export class Phase3Scene extends BaseScene {
     if (this.riverLayer) {
       // Rio começa sem colisão (fase inicia no espiritual)
       this.riverLayer.setCollisionByProperty({ collides: true }, false);
+      this.riverLayer.setVisible(!this.dimensionSystem.isSpirit);
     }
 
     // Colliders apenas com camada 2 e rio
@@ -87,6 +89,10 @@ export class Phase3Scene extends BaseScene {
     // Forçar início na dimensão espiritual
     if (!this.dimensionSystem.isSpirit) {
       this.dimensionSystem.switch();
+    }
+
+    if (this.riverLayer) {
+      this.riverLayer.setVisible(!this.dimensionSystem.isSpirit);
     }
 
     // Inicializar o checkpoint do jogador
@@ -179,8 +185,9 @@ export class Phase3Scene extends BaseScene {
     const updateDimensionState = () => {
       entity.setVisible(this.dimensionSystem.isSpirit);
       if (this.riverLayer) {
-        // No mundo espiritual (true), não colide (false). No mundo real (false), colide (true).
-        this.riverLayer.setCollisionByProperty({ collides: true }, !this.dimensionSystem.isSpirit);
+        const isSpirit = this.dimensionSystem.isSpirit;
+        this.riverLayer.setCollisionByProperty({ collides: true }, !isSpirit);
+        this.riverLayer.setVisible(!isSpirit);
       }
     };
     
