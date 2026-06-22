@@ -1141,7 +1141,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -1907,7 +1907,6 @@
                  "objectgroup":
                     {
                      "draworder":"index",
-                     "id":2,
                      "name":"",
                      "objects":[
                             {
@@ -1946,7 +1945,6 @@
                  "objectgroup":
                     {
                      "draworder":"index",
-                     "id":2,
                      "name":"",
                      "objects":[
                             {
@@ -1979,7 +1977,6 @@
                  "objectgroup":
                     {
                      "draworder":"index",
-                     "id":2,
                      "name":"",
                      "objects":[
                             {
@@ -2012,7 +2009,6 @@
                  "objectgroup":
                     {
                      "draworder":"index",
-                     "id":4,
                      "name":"",
                      "objects":[
                             {
@@ -2045,7 +2041,6 @@
                  "objectgroup":
                     {
                      "draworder":"index",
-                     "id":2,
                      "name":"",
                      "objects":[
                             {
@@ -2084,7 +2079,6 @@
                  "objectgroup":
                     {
                      "draworder":"index",
-                     "id":4,
                      "name":"",
                      "objects":[
                             {
