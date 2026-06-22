@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { DimensionSystem } from '../systems/DimensionSystem';
 import { DimensionUI } from '../systems/DimensionUI';
 import { Player } from '../entities/Player';
+import { GameEvents } from '../events/GameEvents';
 
 export interface SceneData {
   spawnX?: number;
@@ -67,6 +68,15 @@ export abstract class BaseScene extends Phaser.Scene {
     this.shiftKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
     this.onCreate(map);
+
+    // Listener centralizado de morte do jogador
+    const onPlayerDied = () => {
+      this.scene.start('GameOverScene');
+    };
+    this.events.on(GameEvents.PLAYER_DIED, onPlayerDied);
+    this.events.once('shutdown', () => {
+      this.events.off(GameEvents.PLAYER_DIED, onPlayerDied);
+    });
   }
 
   /** Implementado pela subclasse para criar o Tilemap */

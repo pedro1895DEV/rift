@@ -170,6 +170,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setAngle(90);
     (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     (this.body as Phaser.Physics.Arcade.Body).enable = false;
+    this.scene.events.emit(GameEvents.PLAYER_DIED);
   }
 
   private createAnimations(): void {

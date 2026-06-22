@@ -7,6 +7,7 @@ import { CutsceneScene } from './scenes/CutsceneScene';
 import { Phase3Scene } from './scenes/Phase3Scene';
 import { Phase4Scene } from './scenes/Phase4Scene';
 import { VictoryScene } from './scenes/VictoryScene';
+import { GameOverScene } from './scenes/GameOverScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -17,9 +18,9 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   physics: {
     default: 'arcade',
-    arcade: { debug: true },
+    arcade: { debug: false },
   },
-  scene: [MenuScene, IntroScene, GameScene, Phase2Scene, CutsceneScene, Phase3Scene, Phase4Scene, VictoryScene],
+  scene: [MenuScene, IntroScene, GameScene, Phase2Scene, CutsceneScene, Phase3Scene, Phase4Scene, VictoryScene, GameOverScene],
 };
 
 new Phaser.Game(config);

@@ -6,6 +6,7 @@ export enum GameEvents {
   ATTACK_USED = 'ATTACK_USED',
   ENTITY_PHASE_CHANGED = 'ENTITY_PHASE_CHANGED',
   DIMENSION_CHANGED = 'DIMENSION_CHANGED',
+  PLAYER_DIED = 'PLAYER_DIED',
 }
 
 export interface HealthChangedPayload {
