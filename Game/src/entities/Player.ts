@@ -26,6 +26,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private isCurrentlyTinted: boolean = false;
   private isInvulnerable: boolean = false;
 
+  // Sistema de combo de ataque (alternância visual entre attack1 e attack2)
+  private comboStep: 1 | 2 = 1;
+  private comboWindow: number = 800; // ms máximos entre ataques para manter o combo
+
   public get attackHitbox(): Phaser.GameObjects.Zone {
     return this._attackHitbox;
   }
@@ -39,16 +43,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   constructor(scene: Phaser.Scene, x: number, y: number, dimensionSystem: DimensionSystem) {
-    super(scene, x, y, 'character');
+    super(scene, x, y, 'idle_down');
     this.dimensionSystem = dimensionSystem;
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Configuração da Hitbox (baseada no sprite 44x50, focada nos pés)
+    // Configuração da Hitbox física (estimativa inicial para frame 96x80 — pode precisar de ajuste fino visual)
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(24, 20);
-    body.setOffset(10, 30);
+    body.setSize(32, 24);
+    body.setOffset(32, 52);
     body.setCollideWorldBounds(true);
 
     // Inicialização da Hitbox de Ataque
@@ -135,8 +139,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private attack(): void {
+    // Combo: resetar para attack1 se passou mais que comboWindow desde o último golpe
+    if (this.scene.time.now - this.lastAttackTime > this.comboWindow) {
+      this.comboStep = 1;
+    }
+
     this.lastAttackTime = this.scene.time.now;
-    
+
+    // Tocar animação do combo correspondente à direção atual
+    this.play(`attack${this.comboStep}_${this.lastFacing}`, true);
+
+    // Alternar passo do combo para o próximo ataque
+    this.comboStep = this.comboStep === 1 ? 2 : 1;
+
     let hx = this.x;
     let hy = this.y;
     const offset = 32;
@@ -174,14 +189,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private createAnimations(): void {
-    if (!this.scene.anims.exists('walk_down')) {
-      this.scene.anims.create({
-        key: 'walk_down',
-        frames: this.scene.anims.generateFrameNumbers('character', { start: 0, end: 3 }),
-        frameRate: 8,
-        repeat: -1
+    const directions = ['down', 'left', 'right', 'up'] as const;
+    const animConfigs: { type: string; frameRate: number; repeat: number }[] = [
+      { type: 'idle',    frameRate: 8,  repeat: -1 },
+      { type: 'run',     frameRate: 12, repeat: -1 },
+      { type: 'attack1', frameRate: 16, repeat: 0  },
+      { type: 'attack2', frameRate: 16, repeat: 0  },
+    ];
+
+    animConfigs.forEach(({ type, frameRate, repeat }) => {
+      directions.forEach(dir => {
+        const key = `${type}_${dir}`;
+        if (!this.scene.anims.exists(key)) {
+          this.scene.anims.create({
+            key,
+            frames: this.scene.anims.generateFrameNumbers(key, { start: 0, end: 7 }),
+            frameRate,
+            repeat
+          });
+        }
       });
-    }
+    });
   }
 
   update(): void {
@@ -192,28 +220,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     body.setVelocity(0, 0);
 
-    const up = this.cursors.up.isDown || this.cursors.w.isDown;
-    const down = this.cursors.down.isDown || this.cursors.s.isDown;
-    const left = this.cursors.left.isDown || this.cursors.a.isDown;
+    const up    = this.cursors.up.isDown    || this.cursors.w.isDown;
+    const down  = this.cursors.down.isDown  || this.cursors.s.isDown;
+    const left  = this.cursors.left.isDown  || this.cursors.a.isDown;
     const right = this.cursors.right.isDown || this.cursors.d.isDown;
 
-    if (left) { body.setVelocityX(-this.speed); this.lastFacing = 'left'; }
-    else if (right) { body.setVelocityX(this.speed); this.lastFacing = 'right'; }
+    if (left)       { body.setVelocityX(-this.speed); this.lastFacing = 'left'; }
+    else if (right) { body.setVelocityX(this.speed);  this.lastFacing = 'right'; }
 
-    if (up) { body.setVelocityY(-this.speed); this.lastFacing = 'up'; }
-    else if (down) { body.setVelocityY(this.speed); this.lastFacing = 'down'; }
+    if (up)         { body.setVelocityY(-this.speed); this.lastFacing = 'up'; }
+    else if (down)  { body.setVelocityY(this.speed);  this.lastFacing = 'down'; }
 
     // Normaliza velocidade para movimento diagonal não ser mais rápido
     if (body.velocity.length() > 0) {
       body.velocity.normalize().scale(this.speed);
-      this.play('walk_down', true);
-
-      // Inverte o sprite horizontalmente conforme a direção
-      if (body.velocity.x < 0) this.setFlipX(false);
-      else if (body.velocity.x > 0) this.setFlipX(true);
+      this.play(`run_${this.lastFacing}`, true);
     } else {
-      this.stop();
-      this.setFrame(0);
+      this.play(`idle_${this.lastFacing}`, true);
     }
 
     if (this.canAttack && this.cursors.space.isDown && this.scene.time.now - this.lastAttackTime > this.attackDelay) {

@@ -31,9 +31,24 @@ export abstract class BaseScene extends Phaser.Scene {
     this.load.image('img_water', 'assets/tilesets/water_animation_demo.png');
     this.load.image('img_assets', 'assets/tilesets/assets.png');
     this.load.image('img_sword', 'assets/items/sword.png');
-    this.load.spritesheet('character', 'assets/characters/character_demo.png', { 
-      frameWidth: 44, 
-      frameHeight: 50
+
+    // Spritesheets direcionais do Adventurer (96x80 por frame, 8 frames cada)
+    const directions = ['down', 'left', 'right', 'up'];
+    const folderMap: Record<string, string> = {
+      idle:    'IDLE',
+      run:     'RUN',
+      attack1: 'ATTACK 1',
+      attack2: 'ATTACK 2'
+    };
+
+    Object.entries(folderMap).forEach(([type, folder]) => {
+      directions.forEach(dir => {
+        this.load.spritesheet(
+          `${type}_${dir}`,
+          `assets/characters/Sprites/${folder}/${type}_${dir}.png`,
+          { frameWidth: 96, frameHeight: 80 }
+        );
+      });
     });
     
     this.onPreload();
