@@ -10,6 +10,18 @@ export class Phase4Scene extends BaseScene {
   private phaseObjective!: PhaseObjective;
   private entity!: Entity;
   private portalsSealed: number = 0;
+  private channelDuration: number = 1800; // ms para selar (ajustável)
+  private interactKey!: Phaser.Input.Keyboard.Key;
+  private portalsData: {
+    x: number;
+    y: number;
+    name: string;
+    sealed: boolean;
+    progress: number;
+    sprite: Phaser.GameObjects.Sprite;
+    barBg: Phaser.GameObjects.Rectangle;
+    barFill: Phaser.GameObjects.Graphics;
+  }[] = [];
 
   constructor() {
     super('Phase4Scene');
@@ -169,6 +181,7 @@ export class Phase4Scene extends BaseScene {
       if (this.dimensionSystem.isSpirit) {
         if (this.entity.isAlive() && this.entity.isActiveEntity) {
           this.player.takeDamage(1);
+          this.resetAllChannelProgress();
         }
       } else {
         this.entity.spookAway(this.player.x, this.player.y);
@@ -183,7 +196,7 @@ export class Phase4Scene extends BaseScene {
 
     // Configurar Portais
     const portalNames = ['Portal1', 'Portal2', 'Portal3'];
-    const interactKey = this.input.keyboard!.addKey('E');
+    this.interactKey = this.input.keyboard!.addKey('E');
 
     this.anims.create({
       key: 'portal_idle_4',
@@ -203,26 +216,13 @@ export class Phase4Scene extends BaseScene {
       }
 
       const portalSprite = this.add.sprite(pX, pY, 'green_portal').setDepth(2).play('portal_idle_4');
-      let sealed = false;
+      const barBg = this.add.rectangle(pX, pY - 50, 50, 8, 0x000000, 0.6).setDepth(3);
+      const barFill = this.add.graphics().setDepth(4);
 
-      interactKey.on('down', () => {
-        // Verificar distância NO MOMENTO de apertar E (não confiar em flags de overlap)
-        const distToPortal = Phaser.Math.Distance.Between(this.player.x, this.player.y, pX, pY);
-        
-        if (distToPortal < 64 && !sealed && this.dimensionSystem.isSpirit) {
-          sealed = true;
-          this.portalsSealed++;
-          portalSprite.setTint(0x00ff00); // Verde
-          
-          if (this.portalsSealed === 1) {
-            this.showNarrativeDialogue("Primeiro portal selado. A floresta está enfraquecendo.");
-          } else if (this.portalsSealed === 2) {
-            this.showNarrativeDialogue("Segundo portal. Ela está ficando mais furiosa...");
-          } else if (this.portalsSealed === 3) {
-            this.showNarrativeDialogue("Último portal. É agora.");
-            this.finishPhase();
-          }
-        }
+      this.portalsData.push({
+        x: pX, y: pY, name,
+        sealed: false, progress: 0,
+        sprite: portalSprite, barBg, barFill
       });
     });
 
@@ -230,6 +230,33 @@ export class Phase4Scene extends BaseScene {
       this.healthUI.destroy();
       this.phaseObjective.destroy();
     });
+  }
+
+  private sealPortal(data: {
+    sealed: boolean;
+    sprite: Phaser.GameObjects.Sprite;
+    barBg: Phaser.GameObjects.Rectangle;
+    barFill: Phaser.GameObjects.Graphics;
+  }): void {
+    data.sealed = true;
+    data.sprite.setTint(0x00ff00);
+    data.barBg.setVisible(false);
+    data.barFill.clear();
+    this.portalsSealed++;
+    this.entity.onPortalSealed();
+
+    if (this.portalsSealed === 1) {
+      this.showNarrativeDialogue("Primeiro portal selado. A floresta está enfraquecendo.");
+    } else if (this.portalsSealed === 2) {
+      this.showNarrativeDialogue("Segundo portal. Ela está ficando mais furiosa...");
+    } else if (this.portalsSealed === 3) {
+      this.showNarrativeDialogue("Último portal. É agora.");
+      this.finishPhase();
+    }
+  }
+
+  private resetAllChannelProgress(): void {
+    this.portalsData.forEach(data => { data.progress = 0; });
   }
 
   private finishPhase(): void {
@@ -243,5 +270,29 @@ export class Phase4Scene extends BaseScene {
   protected onUpdate(time: number, delta: number): void {
     if (!this.player || !this.player.active) return;
     if (this.entity) this.entity.update();
+
+    this.portalsData.forEach(data => {
+      if (data.sealed) return;
+
+      const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, data.x, data.y);
+      const canChannel = dist < 64 && this.dimensionSystem.isSpirit && this.interactKey.isDown;
+
+      if (canChannel) {
+        data.progress += delta;
+        if (data.progress >= this.channelDuration) {
+          this.sealPortal(data);
+          return;
+        }
+      } else {
+        data.progress = 0;
+      }
+
+      const pct = Phaser.Math.Clamp(data.progress / this.channelDuration, 0, 1);
+      data.barFill.clear();
+      if (pct > 0) {
+        data.barFill.fillStyle(0x00ffaa, 1);
+        data.barFill.fillRect(data.x - 24, data.y - 53, 48 * pct, 6);
+      }
+    });
   }
 }

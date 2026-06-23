@@ -15,6 +15,7 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
   private realWorldFollowDistance: number = 120;
   private hasBeenTriggered: boolean = false;
   private isResetting: boolean = false;
+  private portalsSealedCount: number = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, dimensionSystem: DimensionSystem) {
     super(scene, x, y, 'entity_idle');
@@ -45,6 +46,10 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
 
   public activate(): void {
     this.hasBeenTriggered = true;
+  }
+
+  public onPortalSealed(): void {
+    this.portalsSealedCount++;
   }
 
   public spookAway(playerX: number, playerY: number): void {
@@ -158,13 +163,16 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
     }
 
     if (this.dimensionSystem.isSpirit) {
-      // Perseguição total — pode alcançar o jogador
-      this.scene.physics.moveToObject(this, this.targetPlayer, 60);
+      // Perseguição total — velocidade escala com portais selados (60 → 75 → 90 → 105)
+      const spiritSpeed = 60 + this.portalsSealedCount * 15;
+      this.scene.physics.moveToObject(this, this.targetPlayer, spiritSpeed);
     } else {
-      // Mundo real: persegue mas mantém distância segura, nunca chega ao melee
+      // Mundo real: distância mínima diminui e velocidade aumenta com cada portal selado
+      const followDistance = Math.max(60, this.realWorldFollowDistance - this.portalsSealedCount * 15);
+      const realSpeed = 50 + this.portalsSealedCount * 10;
       const distToPlayer = Phaser.Math.Distance.Between(this.x, this.y, this.targetPlayer.x, this.targetPlayer.y);
-      if (distToPlayer > this.realWorldFollowDistance) {
-        this.scene.physics.moveToObject(this, this.targetPlayer, 50);
+      if (distToPlayer > followDistance) {
+        this.scene.physics.moveToObject(this, this.targetPlayer, realSpeed);
       } else {
         body.setVelocity(0, 0);
       }
