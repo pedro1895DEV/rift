@@ -189,7 +189,7 @@ export abstract class BaseScene extends Phaser.Scene {
     });
   }
 
-  protected showNarrativeDialogue(textMsg: string): void {
+  protected showNarrativeDialogue(textMsg: string, onClose?: () => void): void {
     this.isDialogueActive = true;
     (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     this.player.stop();
@@ -227,6 +227,7 @@ export abstract class BaseScene extends Phaser.Scene {
       bg.destroy();
       text.destroy();
       this.isDialogueActive = false;
+      onClose?.();
     });
   }
 }

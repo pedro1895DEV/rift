@@ -138,6 +138,31 @@ export class Phase4Scene extends BaseScene {
     this.entity = new Entity(this, entityX, entityY, this.dimensionSystem);
     this.entity.setTarget(this.player);
 
+    // Sequência de lore ao se aproximar da Árvore Ancestral (disparo único)
+    const loreMessages = [
+      "A Árvore Ancestral... finalmente a encontrei. Ela pulsa com uma energia corrompida.",
+      "Três portais foram abertos aqui, conectando esse lugar ao vazio entre os mundos.",
+      "Preciso selar os três para fechar essa brecha — e talvez, finalmente, voltar para casa.",
+      "Mas ela não vai deixar por menos. Preciso selar os portais com [E], sempre no plano espiritual."
+    ];
+
+    const showLoreSequence = (index: number) => {
+      if (index >= loreMessages.length) return;
+      this.showNarrativeDialogue(loreMessages[index], () => {
+        showLoreSequence(index + 1);
+      });
+    };
+
+    const loreZone = this.add.zone(entityX, entityY, 100, 100);
+    this.physics.add.existing(loreZone, true);
+    let loreShown = false;
+    this.physics.add.overlap(this.player, loreZone, () => {
+      if (!loreShown) {
+        loreShown = true;
+        showLoreSequence(0);
+      }
+    });
+
     // Collisions Player <-> Entity
     this.physics.add.overlap(this.player, this.entity, () => {
       if (this.dimensionSystem.isSpirit && this.entity.isAlive() && this.entity.isActiveEntity) {
