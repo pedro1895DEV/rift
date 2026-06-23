@@ -52,8 +52,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Configuração da Hitbox física (estimativa inicial para frame 96x80 — pode precisar de ajuste fino visual)
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(32, 24);
-    body.setOffset(32, 52);
+    body.setSize(24, 32);
+    body.setOffset(36, 28);
     body.setCollideWorldBounds(true);
 
     // Inicialização da Hitbox de Ataque
