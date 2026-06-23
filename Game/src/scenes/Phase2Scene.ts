@@ -171,7 +171,7 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
 
     this.chestInteracted = hasFoundSword;
 
-    this.interactHint = this.add.text(chestX, chestY - 40, 'Pressione a tecla [E]', {
+    this.interactHint = this.add.text(chestX, chestY - 40, 'Pressione [E]', {
       fontFamily: 'monospace',
       fontSize: '16px',
       color: '#ffff00',

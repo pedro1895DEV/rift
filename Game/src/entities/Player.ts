@@ -29,6 +29,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // Sistema de combo de ataque (alternância visual entre attack1 e attack2)
   private comboStep: 1 | 2 = 1;
   private comboWindow: number = 800; // ms máximos entre ataques para manter o combo
+  private isAttacking: boolean = false;
 
   public get attackHitbox(): Phaser.GameObjects.Zone {
     return this._attackHitbox;
@@ -82,6 +83,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.events.on(GameEvents.DIMENSION_CHANGED, () => {
       if (this.currentHealth > 0 && !this.isCurrentlyTinted) {
         this.setTint(this.dimensionSystem.isSpirit ? 0x7ec8e3 : 0xffffff);
+      }
+    });
+
+    // Limpar flag de ataque quando qualquer animação de ataque terminar
+    this.on('animationcomplete', (anim: Phaser.Animations.Animation) => {
+      if (anim.key.startsWith('attack')) {
+        this.isAttacking = false;
       }
     });
   }
@@ -145,6 +153,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.lastAttackTime = this.scene.time.now;
+
+    // Sinalizar que a animação de ataque está em execução
+    this.isAttacking = true;
 
     // Tocar animação do combo correspondente à direção atual
     this.play(`attack${this.comboStep}_${this.lastFacing}`, true);
@@ -231,12 +242,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (up)         { body.setVelocityY(-this.speed); this.lastFacing = 'up'; }
     else if (down)  { body.setVelocityY(this.speed);  this.lastFacing = 'down'; }
 
-    // Normaliza velocidade para movimento diagonal não ser mais rápido
-    if (body.velocity.length() > 0) {
+    // Normaliza velocidade e troca animação — não sobrescreve durante ataque
+    if (!this.isAttacking) {
+      if (body.velocity.length() > 0) {
+        body.velocity.normalize().scale(this.speed);
+        this.play(`run_${this.lastFacing}`, true);
+      } else {
+        this.play(`idle_${this.lastFacing}`, true);
+      }
+    } else if (body.velocity.length() > 0) {
+      // Mesmo atacando, normaliza a velocidade se o jogador estiver se movendo
       body.velocity.normalize().scale(this.speed);
-      this.play(`run_${this.lastFacing}`, true);
-    } else {
-      this.play(`idle_${this.lastFacing}`, true);
     }
 
     if (this.canAttack && this.cursors.space.isDown && this.scene.time.now - this.lastAttackTime > this.attackDelay) {
