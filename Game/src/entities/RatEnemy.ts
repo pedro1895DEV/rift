@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { IDamageable } from '../interfaces/IDamageable';
 import { GameEvents, EnemyDiedPayload } from '../events/GameEvents';
+import { DimensionSystem } from '../systems/DimensionSystem';
 
 export class RatEnemy extends Phaser.Physics.Arcade.Sprite implements IDamageable {
   private health: number = 2;
@@ -13,12 +14,14 @@ export class RatEnemy extends Phaser.Physics.Arcade.Sprite implements IDamageabl
   private speed: number = 100;
   private targetPlayer: Phaser.Physics.Arcade.Sprite | null = null;
   private variant: number;
+  private dimensionSystem: DimensionSystem;
 
   private isInvulnerable: boolean = false;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, variant: number = 0) {
+  constructor(scene: Phaser.Scene, x: number, y: number, variant: number = 0, dimensionSystem: DimensionSystem) {
     super(scene, x, y, 'rats');
     this.variant = variant;
+    this.dimensionSystem = dimensionSystem;
     this.spawnPoint = new Phaser.Math.Vector2(x, y);
     
     scene.add.existing(this);
@@ -117,9 +120,16 @@ export class RatEnemy extends Phaser.Physics.Arcade.Sprite implements IDamageabl
   update(): void {
     if (!this.alive || !this.targetPlayer) return;
 
+    const body = this.body as Phaser.Physics.Arcade.Body;
+
+    if (this.dimensionSystem.isSpirit) {
+      body.setVelocity(0, 0);
+      this.updateAnimation();
+      return;
+    }
+
     const distanceToPlayer = Phaser.Math.Distance.Between(this.x, this.y, this.targetPlayer.x, this.targetPlayer.y);
     const distanceToSpawn = Phaser.Math.Distance.Between(this.x, this.y, this.spawnPoint.x, this.spawnPoint.y);
-    const body = this.body as Phaser.Physics.Arcade.Body;
 
     if (distanceToPlayer < this.detectionRange && distanceToSpawn < this.leashRange) {
       this.scene.physics.moveToObject(this, this.targetPlayer, this.speed);

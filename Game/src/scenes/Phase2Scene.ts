@@ -202,7 +202,7 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
     this.orbs.add(orb);
 
     ratPositions.forEach(pos => {
-      const rat = new RatEnemy(this, pos.x, pos.y, pos.var);
+      const rat = new RatEnemy(this, pos.x, pos.y, pos.var, this.dimensionSystem);
       rat.setTarget(this.player);
       this.rats.add(rat);
     });
@@ -225,6 +225,7 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
     
     // Dano do inimigo no player
     this.physics.add.overlap(this.player, this.rats, (_p, enemy) => {
+      if (this.dimensionSystem.isSpirit) return;
       if (isDamageable(enemy) && enemy.isAlive()) {
         this.player.takeDamage(1);
       }
