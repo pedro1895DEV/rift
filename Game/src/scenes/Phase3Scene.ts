@@ -15,6 +15,7 @@ export class Phase3Scene extends BaseScene {
   private camada3: Phaser.Tilemaps.TilemapLayer | null = null;
   private riverLayer: Phaser.Tilemaps.TilemapLayer | null = null;
   private lastSafePosition!: Phaser.Math.Vector2;
+  private lastDeathTime: number = 0;
 
   constructor() {
     super('Phase3Scene');
@@ -66,8 +67,8 @@ export class Phase3Scene extends BaseScene {
     this.camada2.setCollisionByProperty({ collides: true });
     
     if (this.riverLayer) {
-      // Rio começa sem colisão (fase inicia no espiritual)
-      this.riverLayer.setCollisionByProperty({ collides: true }, false);
+      // Colisão reflete o estado real da dimensão no início da fase
+      this.riverLayer.setCollisionByProperty({ collides: true }, !this.dimensionSystem.isSpirit);
       this.riverLayer.setVisible(!this.dimensionSystem.isSpirit);
     }
 
@@ -86,10 +87,7 @@ export class Phase3Scene extends BaseScene {
     const hasFoundSword = this.registry.get('hasFoundSword') || false;
     this.player.setCanAttack(hasFoundSword);
 
-    // Forçar início na dimensão espiritual
-    if (!this.dimensionSystem.isSpirit) {
-      this.dimensionSystem.switch();
-    }
+
 
     if (this.riverLayer) {
       this.riverLayer.setVisible(!this.dimensionSystem.isSpirit);
@@ -218,9 +216,12 @@ export class Phase3Scene extends BaseScene {
 
     if (!this.dimensionSystem.isSpirit) {
       if (isDeadly) {
-        this.player.setPosition(this.lastSafePosition.x, this.lastSafePosition.y);
-        (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
-        this.cameras.main.shake(100, 0.02);
+        if (time - this.lastDeathTime > 500) {
+          this.lastDeathTime = time;
+          this.player.setPosition(this.lastSafePosition.x, this.lastSafePosition.y);
+          (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+          this.cameras.main.shake(100, 0.02);
+        }
       } else {
         this.lastSafePosition.set(this.player.x, this.player.y);
       }

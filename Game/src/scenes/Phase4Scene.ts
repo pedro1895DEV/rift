@@ -165,7 +165,16 @@ export class Phase4Scene extends BaseScene {
       });
     };
 
-    const loreZone = this.add.zone(entityX, entityY, 100, 100);
+    let treeX = entityX, treeY = entityY; // fallback: mesma posição de Entity se 'Tree' não existir
+    if (objectLayer) {
+      const treeObj = objectLayer.objects.find(o => o.name === 'Tree');
+      if (treeObj) {
+        treeX = treeObj.x ?? treeX;
+        treeY = treeObj.y ?? treeY;
+      }
+    }
+
+    const loreZone = this.add.zone(treeX, treeY, 100, 100);
     this.physics.add.existing(loreZone, true);
     let loreShown = false;
     this.physics.add.overlap(this.player, loreZone, () => {
