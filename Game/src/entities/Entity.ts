@@ -11,6 +11,10 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
   private dimensionSystem: DimensionSystem;
   private regenTimer: Phaser.Time.TimerEvent | null = null;
   public isActiveEntity: boolean = true;
+  // Distância mínima de segurança no mundo real (pode precisar de ajuste fino visual)
+  private realWorldFollowDistance: number = 120;
+  private hasBeenTriggered: boolean = false;
+  private isResetting: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, dimensionSystem: DimensionSystem) {
     super(scene, x, y, 'entity_idle');
@@ -37,6 +41,39 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
       (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     }
     return this;
+  }
+
+  public activate(): void {
+    this.hasBeenTriggered = true;
+  }
+
+  public spookAway(playerX: number, playerY: number): void {
+    if (this.isResetting || this.dimensionSystem.isSpirit) return;
+    this.isResetting = true;
+
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setVelocity(0, 0);
+
+    this.scene.tweens.add({
+      targets: this,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => {
+        const angle = Phaser.Math.Angle.Between(playerX, playerY, this.x, this.y);
+        const newX = playerX + Math.cos(angle) * this.realWorldFollowDistance;
+        const newY = playerY + Math.sin(angle) * this.realWorldFollowDistance;
+        this.setPosition(newX, newY);
+
+        this.scene.tweens.add({
+          targets: this,
+          alpha: 0.5,
+          duration: 400,
+          onComplete: () => {
+            this.isResetting = false;
+          }
+        });
+      }
+    });
   }
 
   public takeDamage(amount: number): void {
@@ -89,22 +126,48 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
   }
 
   update(): void {
-    this.setVisible(this.dimensionSystem.isSpirit);
-    
-    if (!this.dimensionSystem.isSpirit || !this.targetPlayer || !this.isActiveEntity) {
-      (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    const body = this.body as Phaser.Physics.Arcade.Body;
+
+    if (!this.hasBeenTriggered) {
+      this.setVisible(false);
+      body.setVelocity(0, 0);
       return;
     }
+
+    if (this.isResetting) {
+      body.setVelocity(0, 0);
+      return;
+    }
+
+    if (!this.targetPlayer || !this.isActiveEntity) {
+      body.setVelocity(0, 0);
+      return;
+    }
+
+    // Sempre visível agora — sólida no espiritual, "fantasmagórica" no real
+    this.setVisible(true);
+    this.setAlpha(this.dimensionSystem.isSpirit ? 1 : 0.5);
 
     if (this.isImmune) {
       const dist = Phaser.Math.Distance.Between(this.x, this.y, this.spawnPoint.x, this.spawnPoint.y);
       if (dist < 10) {
-        (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+        body.setVelocity(0, 0);
         this.setPosition(this.spawnPoint.x, this.spawnPoint.y);
       }
       return;
     }
 
-    this.scene.physics.moveToObject(this, this.targetPlayer, 60);
+    if (this.dimensionSystem.isSpirit) {
+      // Perseguição total — pode alcançar o jogador
+      this.scene.physics.moveToObject(this, this.targetPlayer, 60);
+    } else {
+      // Mundo real: persegue mas mantém distância segura, nunca chega ao melee
+      const distToPlayer = Phaser.Math.Distance.Between(this.x, this.y, this.targetPlayer.x, this.targetPlayer.y);
+      if (distToPlayer > this.realWorldFollowDistance) {
+        this.scene.physics.moveToObject(this, this.targetPlayer, 50);
+      } else {
+        body.setVelocity(0, 0);
+      }
+    }
   }
 }

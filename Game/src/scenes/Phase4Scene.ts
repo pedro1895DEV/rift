@@ -159,14 +159,19 @@ export class Phase4Scene extends BaseScene {
     this.physics.add.overlap(this.player, loreZone, () => {
       if (!loreShown) {
         loreShown = true;
+        this.entity.activate();
         showLoreSequence(0);
       }
     });
 
     // Collisions Player <-> Entity
     this.physics.add.overlap(this.player, this.entity, () => {
-      if (this.dimensionSystem.isSpirit && this.entity.isAlive() && this.entity.isActiveEntity) {
-        this.player.takeDamage(1);
+      if (this.dimensionSystem.isSpirit) {
+        if (this.entity.isAlive() && this.entity.isActiveEntity) {
+          this.player.takeDamage(1);
+        }
+      } else {
+        this.entity.spookAway(this.player.x, this.player.y);
       }
     });
 
