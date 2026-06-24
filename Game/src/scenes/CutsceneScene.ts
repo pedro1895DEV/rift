@@ -1,14 +1,14 @@
 import Phaser from 'phaser';
 
 export class CutsceneScene extends Phaser.Scene {
-  private playerSpawn: { spawnX: number, spawnY: number } = { spawnX: 0, spawnY: 0 };
+  private playerSpawn: any = {};
 
   constructor() {
     super({ key: 'CutsceneScene' });
   }
 
-  init(data: { spawnX: number, spawnY: number }): void {
-    this.playerSpawn = data;
+  init(data: any): void {
+    this.playerSpawn = data || {};
   }
 
   preload(): void {

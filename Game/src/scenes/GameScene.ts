@@ -95,9 +95,9 @@ export class GameScene extends BaseScene {
       if (this.phaseObjective.canComplete()) {
         if (!this.registry.get('hasSeenEntityIntro')) {
           this.registry.set('hasSeenEntityIntro', true);
-          this.scene.start('CutsceneScene', { spawnX: 128, spawnY: 1380 });
+          this.scene.start('CutsceneScene');
         } else {
-          this.scene.start('Phase2Scene', { spawnX: 128, spawnY: 1380 });
+          this.scene.start('Phase2Scene');
         }
       }
     });

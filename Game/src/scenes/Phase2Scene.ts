@@ -66,11 +66,10 @@ export class Phase2Scene extends BaseScene {
     const ratsTileset   = map.addTilesetImage('Rats', 'img_rats_tileset')!;
 
     const todosTilesets = [tileset, waterTileset, assetsTileset, grassTileset, propsTileset, plantShadowTileset, propsShadowTileset, wallTileset, plantTileset, chestTileset, ratsTileset];
-map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0); // mais atrás no Tiled
-map.createLayer('Camada de Blocos 4', todosTilesets, 0, 0);
-map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
-map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no Tiled
-    // map.createObjectLayer('Objects', todosTilesets, 0, 0);
+    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0); // mais atrás no Tiled
+    map.createLayer('Camada de Blocos 4', todosTilesets, 0, 0);
+    map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
+    map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no Tiled
 
     return map;
   }
@@ -142,7 +141,7 @@ map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0); // mais na frente no
       if (transitioning) return;
       if (this.phaseObjective.canComplete()) {
         transitioning = true;
-        this.scene.start('Phase3Scene', { spawnX: 96, spawnY: 64 });
+        this.scene.start('Phase3Scene');
       } else {
         this.cameras.main.shake(100, 0.01);
       }
