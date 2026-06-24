@@ -16,6 +16,8 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
   private hasBeenTriggered: boolean = false;
   private isResetting: boolean = false;
   private portalsSealedCount: number = 0;
+  private retreatDistance: number = 80;
+  private retreatTarget: Phaser.Math.Vector2 | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, dimensionSystem: DimensionSystem) {
     super(scene, x, y, 'entity_idle');
@@ -100,12 +102,27 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
     return this.health > 0;
   }
 
+  public get hasBecomeAggressive(): boolean {
+    return this.portalsSealedCount >= 1;
+  }
+
   private triggerRetreat(): void {
     this.isImmune = true;
     this.scene.events.emit(GameEvents.ENTITY_PHASE_CHANGED);
 
-    (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
-    this.scene.physics.moveToObject(this, this.spawnPoint, 100);
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setVelocity(0, 0);
+
+    if (this.targetPlayer) {
+      const angle = Phaser.Math.Angle.Between(this.targetPlayer.x, this.targetPlayer.y, this.x, this.y);
+      this.retreatTarget = new Phaser.Math.Vector2(
+        this.x + Math.cos(angle) * this.retreatDistance,
+        this.y + Math.sin(angle) * this.retreatDistance
+      );
+      this.scene.physics.moveTo(this, this.retreatTarget.x, this.retreatTarget.y, 100);
+    } else {
+      this.retreatTarget = new Phaser.Math.Vector2(this.x, this.y);
+    }
 
     // Regenera 1 HP por segundo, 3 vezes (3 segundos de imunidade)
     let regenTicks = 0;
@@ -154,10 +171,14 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
     this.setAlpha(this.dimensionSystem.isSpirit ? 1 : 0.5);
 
     if (this.isImmune) {
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, this.spawnPoint.x, this.spawnPoint.y);
-      if (dist < 10) {
+      if (this.retreatTarget) {
+        const dist = Phaser.Math.Distance.Between(this.x, this.y, this.retreatTarget.x, this.retreatTarget.y);
+        if (dist < 10) {
+          body.setVelocity(0, 0);
+          this.setPosition(this.retreatTarget.x, this.retreatTarget.y);
+        }
+      } else {
         body.setVelocity(0, 0);
-        this.setPosition(this.spawnPoint.x, this.spawnPoint.y);
       }
       return;
     }
@@ -167,14 +188,20 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
       const spiritSpeed = 60 + this.portalsSealedCount * 15;
       this.scene.physics.moveToObject(this, this.targetPlayer, spiritSpeed);
     } else {
-      // Mundo real: distância mínima diminui e velocidade aumenta com cada portal selado
-      const followDistance = Math.max(60, this.realWorldFollowDistance - this.portalsSealedCount * 15);
-      const realSpeed = 50 + this.portalsSealedCount * 10;
-      const distToPlayer = Phaser.Math.Distance.Between(this.x, this.y, this.targetPlayer.x, this.targetPlayer.y);
-      if (distToPlayer > followDistance) {
-        this.scene.physics.moveToObject(this, this.targetPlayer, realSpeed);
+      if (this.hasBecomeAggressive) {
+        // Já está furiosa o suficiente para atacar mesmo no mundo real
+        const realAggressiveSpeed = 55 + this.portalsSealedCount * 10;
+        this.scene.physics.moveToObject(this, this.targetPlayer, realAggressiveSpeed);
       } else {
-        body.setVelocity(0, 0);
+        // Mundo real: distância mínima diminui e velocidade aumenta com cada portal selado
+        const followDistance = Math.max(60, this.realWorldFollowDistance - this.portalsSealedCount * 15);
+        const realSpeed = 50 + this.portalsSealedCount * 10;
+        const distToPlayer = Phaser.Math.Distance.Between(this.x, this.y, this.targetPlayer.x, this.targetPlayer.y);
+        if (distToPlayer > followDistance) {
+          this.scene.physics.moveToObject(this, this.targetPlayer, realSpeed);
+        } else {
+          body.setVelocity(0, 0);
+        }
       }
     }
   }

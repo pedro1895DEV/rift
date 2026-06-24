@@ -22,6 +22,7 @@ export class Phase4Scene extends BaseScene {
     barBg: Phaser.GameObjects.Rectangle;
     barFill: Phaser.GameObjects.Graphics;
   }[] = [];
+  private portalsUnlocked: boolean = false;
 
   constructor() {
     super('Phase4Scene');
@@ -181,13 +182,18 @@ export class Phase4Scene extends BaseScene {
       if (!loreShown) {
         loreShown = true;
         this.entity.activate();
+        this.portalsUnlocked = true;
+        this.portalsData.forEach(data => {
+          data.sprite.setVisible(true);
+          data.barBg.setVisible(true);
+        });
         showLoreSequence(0);
       }
     });
 
     // Collisions Player <-> Entity
     this.physics.add.overlap(this.player, this.entity, () => {
-      if (this.dimensionSystem.isSpirit) {
+      if (this.dimensionSystem.isSpirit || this.entity.hasBecomeAggressive) {
         if (this.entity.isAlive() && this.entity.isActiveEntity) {
           this.player.takeDamage(1);
           this.resetAllChannelProgress();
@@ -198,7 +204,7 @@ export class Phase4Scene extends BaseScene {
     });
 
     this.physics.add.overlap(this.player.attackHitbox, this.entity, () => {
-      if (this.dimensionSystem.isSpirit && this.entity.isActiveEntity) {
+      if (this.dimensionSystem.isSpirit && this.entity.isActiveEntity && this.entity.hasBecomeAggressive) {
         this.entity.takeDamage(1);
       }
     });
@@ -224,8 +230,8 @@ export class Phase4Scene extends BaseScene {
         }
       }
 
-      const portalSprite = this.add.sprite(pX, pY, 'green_portal').setDepth(2).play('portal_idle_4');
-      const barBg = this.add.rectangle(pX, pY - 50, 50, 8, 0x000000, 0.6).setDepth(3);
+      const portalSprite = this.add.sprite(pX, pY, 'green_portal').setDepth(2).play('portal_idle_4').setVisible(false);
+      const barBg = this.add.rectangle(pX, pY - 50, 50, 8, 0x000000, 0.6).setDepth(3).setVisible(false);
       const barFill = this.add.graphics().setDepth(4);
 
       this.portalsData.push({
@@ -281,7 +287,7 @@ export class Phase4Scene extends BaseScene {
     if (this.entity) this.entity.update();
 
     this.portalsData.forEach(data => {
-      if (data.sealed) return;
+      if (!this.portalsUnlocked || data.sealed) return;
 
       const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, data.x, data.y);
       const canChannel = dist < 64 && this.dimensionSystem.isSpirit && this.interactKey.isDown;
