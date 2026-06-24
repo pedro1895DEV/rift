@@ -8,8 +8,8 @@ export class GameScene extends BaseScene {
   private phaseObjective!: PhaseObjective;
 
   // Referências para alternar colisões entre dimensões
-  private camada2!: Phaser.Tilemaps.TilemapLayer;
-  private camadaEspiritual!: Phaser.Tilemaps.TilemapLayer;
+  private camadaPedras!: Phaser.Tilemaps.TilemapLayer;
+  private pedrasCollider!: Phaser.Physics.Arcade.Collider;
 
   constructor() {
     super('GameScene');
@@ -57,35 +57,31 @@ export class GameScene extends BaseScene {
 
     const todosTilesets = [tileset, assetsTileset, waterTileset, tiles16Tileset, assets16Tileset, assetsSpacedTileset];
 
-    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);
-    map.createLayer('Camada Espiritual', todosTilesets, 0, 0);
-    map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);
-    map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0);
+    map.createLayer('Camada de Blocos 1', todosTilesets, 0, 0);  // chão, mais atrás
+    map.createLayer('Camada Pedras', todosTilesets, 0, 0);        // pedras
+    map.createLayer('Camada de Blocos 2', todosTilesets, 0, 0);   // árvores
+    map.createLayer('Camada de Blocos 3', todosTilesets, 0, 0);   // arbustos/troncos, mais na frente
 
     return map;
   }
 
   protected setupCollisions(map: Phaser.Tilemaps.Tilemap): void {
     const camada1 = map.getLayer('Camada de Blocos 1')!.tilemapLayer;
+    const camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
     const camada3 = map.getLayer('Camada de Blocos 3')!.tilemapLayer;
+    this.camadaPedras = map.getLayer('Camada Pedras')!.tilemapLayer;
 
-    // Guardar referências para alternar colisão via evento
-    this.camada2 = map.getLayer('Camada de Blocos 2')!.tilemapLayer;
-    this.camadaEspiritual = map.getLayer('Camada Espiritual')!.tilemapLayer;
-
-    // Camadas sempre sólidas
+    // Cenário permanente — sempre sólido, sempre visível
     camada1.setCollisionByProperty({ collides: true });
+    camada2.setCollisionByProperty({ collides: true });
     camada3.setCollisionByProperty({ collides: true });
     this.physics.add.collider(this.player, camada1);
+    this.physics.add.collider(this.player, camada2);
     this.physics.add.collider(this.player, camada3);
 
-    // Camada 2 — obstáculo do mundo real (começa ATIVA)
-    this.camada2.setCollisionByProperty({ collides: true });
-    this.physics.add.collider(this.player, this.camada2);
-
-    // Camada Espiritual — só existe no mundo espiritual (começa INATIVA)
-    this.camadaEspiritual.setCollisionByProperty({ collides: true }, false);
-    this.physics.add.collider(this.player, this.camadaEspiritual);
+    // Pedras — obstáculo do mundo real, some no espiritual
+    this.camadaPedras.setCollisionByProperty({ collides: true });
+    this.pedrasCollider = this.physics.add.collider(this.player, this.camadaPedras);
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
@@ -106,11 +102,11 @@ export class GameScene extends BaseScene {
       }
     });
 
-    // Alterna colisão entre camada real e espiritual ao trocar de dimensão
+    // Alterna visibilidade e colisão da camada de pedras ao trocar de dimensão
     this.events.on('dimensionChanged', () => {
       const isSpirit = this.dimensionSystem.isSpirit;
-      this.camada2.setCollisionByProperty({ collides: true }, !isSpirit);
-      this.camadaEspiritual.setCollisionByProperty({ collides: true }, isSpirit);
+      this.pedrasCollider.active = !isSpirit;
+      this.camadaPedras.setVisible(!isSpirit);
     });
 
     // Tutorial — detecta objeto no Tiled e dispara diálogo uma vez
