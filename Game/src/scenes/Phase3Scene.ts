@@ -36,6 +36,10 @@ export class Phase3Scene extends BaseScene {
       frameWidth: 64,
       frameHeight: 64
     });
+    this.load.spritesheet('wisp', 'assets/characters/wisp/Wisp.png', {
+      frameWidth: 32,
+      frameHeight: 32
+    });
   }
 
   protected createMap(): Phaser.Tilemaps.Tilemap {
@@ -206,7 +210,7 @@ export class Phase3Scene extends BaseScene {
     const entity = this.add.sprite(entityX, entityY, 'entity_idle', 0)
       .setDepth(5)
       .setTint(0x88aaff)
-      .setVisible(this.dimensionSystem.isSpirit);
+      .setVisible(false);
 
     this.tweens.add({
       targets: entity,
@@ -223,7 +227,10 @@ export class Phase3Scene extends BaseScene {
     ];
 
     const showEntityLoreSequence = (index: number) => {
-      if (index >= entityLoreMessages.length) return;
+      if (index >= entityLoreMessages.length) {
+        entity.setVisible(false); // esconde definitivamente após a sequência
+        return;
+      }
       this.showNarrativeDialogue(entityLoreMessages[index], () => {
         showEntityLoreSequence(index + 1);
       });
@@ -235,13 +242,13 @@ export class Phase3Scene extends BaseScene {
     this.physics.add.overlap(this.player, entityLoreZone, () => {
       if (!entityLoreShown) {
         entityLoreShown = true;
+        entity.setVisible(true);
         showEntityLoreSequence(0);
       }
     });
 
-    // Atualiza visibilidade da entidade conforme dimensão e colisão do rio
+    // Atualiza visibilidade do rio e colisão ao trocar de dimensão
     const updateDimensionState = () => {
-      entity.setVisible(this.dimensionSystem.isSpirit);
       if (this.riverLayer) {
         const isSpirit = this.dimensionSystem.isSpirit;
         this.riverLayer.setCollisionByProperty({ collides: true }, !isSpirit);

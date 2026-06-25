@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DimensionSystem } from '../systems/DimensionSystem';
 import { IDamageable } from '../interfaces/IDamageable';
 
-export class WanderingSpirit extends Phaser.GameObjects.Arc implements IDamageable {
+export class WanderingSpirit extends Phaser.Physics.Arcade.Sprite implements IDamageable {
   private dimensionSystem: DimensionSystem;
   private centerPoint: Phaser.Math.Vector2;
   private orbitRadius: number;
@@ -20,7 +20,7 @@ export class WanderingSpirit extends Phaser.GameObjects.Arc implements IDamageab
     orbitRadius: number = 50,
     orbitSpeed: number = 1.0
   ) {
-    super(scene, x, y, 10, 0, 360, false, 0x7ec8e3, 0.8);
+    super(scene, x, y, 'wisp', 0);
     this.dimensionSystem = dimensionSystem;
     this.centerPoint = new Phaser.Math.Vector2(x, y);
     this.orbitRadius = orbitRadius;
@@ -35,15 +35,18 @@ export class WanderingSpirit extends Phaser.GameObjects.Arc implements IDamageab
     body.setAllowGravity(false);
 
     this.setDepth(4);
+    this.setTint(0x7ec8e3); // recolore o fogo original para o ciano do mundo espiritual
     this.setVisible(this.dimensionSystem.isSpirit);
 
-    this.scene.tweens.add({
-      targets: this,
-      alpha: { from: 0.5, to: 1 },
-      duration: 800,
-      yoyo: true,
-      repeat: -1
-    });
+    if (!scene.anims.exists('wisp_idle')) {
+      scene.anims.create({
+        key: 'wisp_idle',
+        frames: scene.anims.generateFrameNumbers('wisp', { start: 0, end: 9 }),
+        frameRate: 10,
+        repeat: -1
+      });
+    }
+    this.play('wisp_idle');
   }
 
   public update(delta: number): void {
