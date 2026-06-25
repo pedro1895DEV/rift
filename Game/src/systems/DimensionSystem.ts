@@ -101,6 +101,15 @@ export class DimensionSystem {
     this.scene.events.emit(EVENTS.ENERGY_CHANGED, this._energy);
   }
 
+  /** Aplica penalidade de energia (ex: tocar em obstáculo espiritual) */
+  applyEnergyPenalty(amount: number): void {
+    this._energy = Math.max(0, this._energy - amount);
+    this.scene.events.emit(EVENTS.ENERGY_CHANGED, this._energy);
+    if (this._energy <= 0 && this.isSpirit) {
+      this.switch(); // força volta ao mundo real se a energia zerar
+    }
+  }
+
   // ─── Auxiliares Privados ────────────────────────────────────────────────────
 
   private _updateVisibility(): void {

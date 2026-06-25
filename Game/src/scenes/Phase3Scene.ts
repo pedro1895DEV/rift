@@ -4,6 +4,8 @@ import { Orb } from '../objects/Orb';
 import { HealthUI } from '../ui/HealthUI';
 import { PhaseObjective } from '../systems/PhaseObjective';
 import { GameEvents } from '../events/GameEvents';
+import { WanderingSpirit } from '../entities/WanderingSpirit';
+import { isDamageable } from '../interfaces/IDamageable';
 
 export class Phase3Scene extends BaseScene {
   private orbs!: Phaser.Physics.Arcade.StaticGroup;
@@ -14,8 +16,10 @@ export class Phase3Scene extends BaseScene {
   private camada2!: Phaser.Tilemaps.TilemapLayer;
   private camada3: Phaser.Tilemaps.TilemapLayer | null = null;
   private riverLayer: Phaser.Tilemaps.TilemapLayer | null = null;
+  private riverCollider: Phaser.Physics.Arcade.Collider | null = null;
   private lastSafePosition!: Phaser.Math.Vector2;
   private lastDeathTime: number = 0;
+  private spirits: WanderingSpirit[] = [];
 
   constructor() {
     super('Phase3Scene');
@@ -144,6 +148,39 @@ export class Phase3Scene extends BaseScene {
     this.orbs.add(new Orb(this, orb1X, orb1Y));
     this.orbs.add(new Orb(this, orb2X, orb2Y));
 
+    // Espíritos Errantes — orbitam pontos do trajeto, visíveis só no espiritual
+    const spiritDefaults = [
+      { x: orb1X + 80, y: orb1Y },
+      { x: (orb1X + orb2X) / 2, y: (orb1Y + orb2Y) / 2 },
+      { x: orb2X - 80, y: orb2Y }
+    ];
+
+    spiritDefaults.forEach((def, i) => {
+      let sx = def.x, sy = def.y;
+      if (objectLayer) {
+        const sObj = objectLayer.objects.find(o => o.name === `Spirit${i + 1}`);
+        if (sObj) {
+          sx = sObj.x ?? sx;
+          sy = sObj.y ?? sy;
+        }
+      }
+      const spirit = new WanderingSpirit(this, sx, sy, this.dimensionSystem);
+      this.spirits.push(spirit);
+
+      this.physics.add.overlap(this.player, spirit, () => {
+        if (spirit.tryDrain(this.time.now)) {
+          this.dimensionSystem.applyEnergyPenalty(20);
+          this.cameras.main.shake(80, 0.01);
+        }
+      });
+
+      this.physics.add.overlap(this.player.attackHitbox, spirit, () => {
+        if (isDamageable(spirit) && spirit.isAlive()) {
+          spirit.takeDamage(1);
+        }
+      });
+    });
+
     this.physics.add.overlap(this.player, this.orbs, (_p, o) => {
       if (this.phaseObjective.currentKills >= this.phaseObjective.requiredKills) {
         (o as Orb).collect();
@@ -179,6 +216,29 @@ export class Phase3Scene extends BaseScene {
       repeat: -1
     });
 
+    // Lore ao se aproximar da Entidade — disparo único, 2 mensagens encadeadas
+    const entityLoreMessages = [
+      "Ela está mais perto agora. Sinto seu olhar mesmo de longe.",
+      "Não sei o que ela quer. Mas sinto que vamos nos encontrar de novo."
+    ];
+
+    const showEntityLoreSequence = (index: number) => {
+      if (index >= entityLoreMessages.length) return;
+      this.showNarrativeDialogue(entityLoreMessages[index], () => {
+        showEntityLoreSequence(index + 1);
+      });
+    };
+
+    const entityLoreZone = this.add.zone(entityX, entityY, 100, 100);
+    this.physics.add.existing(entityLoreZone, true);
+    let entityLoreShown = false;
+    this.physics.add.overlap(this.player, entityLoreZone, () => {
+      if (!entityLoreShown) {
+        entityLoreShown = true;
+        showEntityLoreSequence(0);
+      }
+    });
+
     // Atualiza visibilidade da entidade conforme dimensão e colisão do rio
     const updateDimensionState = () => {
       entity.setVisible(this.dimensionSystem.isSpirit);
@@ -200,6 +260,8 @@ export class Phase3Scene extends BaseScene {
 
   protected onUpdate(time: number, delta: number): void {
     if (!this.player || !this.player.active) return;
+
+    this.spirits.forEach(spirit => spirit.update(delta));
     
     const px = this.player.x;
     const py = this.player.y + 16; // Pés do personagem
