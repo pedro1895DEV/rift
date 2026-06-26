@@ -33,11 +33,14 @@ export class VictoryScene extends Phaser.Scene {
       }
 
       const t = this.add.text(width / 2, height / 2, texts[currentText], {
-        fontFamily: 'serif',
-        fontSize: '24px',
+        fontFamily: '"Courier New", Courier, monospace',
+        fontSize: '28px',
+        fontStyle: 'bold',
         color: '#ffffff',
-        align: 'center'
-      }).setOrigin(0.5).setAlpha(0);
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 4,
+      }).setOrigin(0.5).setAlpha(0).setShadow(2, 2, '#000000', 4, true, true);
 
       this.tweens.add({
         targets: t,
@@ -61,17 +64,23 @@ export class VictoryScene extends Phaser.Scene {
     const { width, height } = this.scale;
     
     const fimText = this.add.text(width / 2, height / 2 - 40, "FIM", {
-      fontFamily: 'serif',
+      fontFamily: '"Courier New", Courier, monospace',
       fontSize: '64px',
+      fontStyle: 'bold',
       color: '#ffffff',
-      align: 'center'
-    }).setOrigin(0.5).setAlpha(0);
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 8,
+    }).setOrigin(0.5).setAlpha(0).setShadow(0, 0, '#ffffff', 10, true, true);
 
     const subText = this.add.text(width / 2, height / 2 + 40, "Pressione ENTER para voltar ao menu", {
-      fontFamily: 'monospace',
-      fontSize: '16px',
+      fontFamily: '"Courier New", Courier, monospace',
+      fontSize: '18px',
+      fontStyle: 'bold',
       color: '#aaaaaa',
-      align: 'center'
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4,
     }).setOrigin(0.5).setAlpha(0);
 
     this.tweens.add({

@@ -9,6 +9,7 @@ export class MenuScene extends Phaser.Scene {
 
   preload(): void {
     this.load.audio('bgm_menu', 'assets/sounds/bgm/lorenzobuczek-dark-forest-156382-MENU-SOUNDTRACK-LOOP.mp3');
+    this.load.image('menu_bg', 'assets/menu_bg.jpg');
   }
 
   create(): void {
@@ -19,42 +20,37 @@ export class MenuScene extends Phaser.Scene {
     const cx = width / 2;
     const cy = height / 2;
 
-    this.add.rectangle(cx, cy, width, height, 0x050510);
+    this.add.image(cx, cy, 'menu_bg').setDisplaySize(width, height);
 
-    for (let i = 0; i < 50; i++) {
-      const x = Phaser.Math.Between(0, width);
-      const y = Phaser.Math.Between(0, height);
-      const star = this.add.rectangle(x, y, 2, 2, 0xffffff, Phaser.Math.FloatBetween(0.2, 0.8));
-      
-      this.tweens.add({
-        targets: star,
-        alpha: 0,
-        duration: Phaser.Math.Between(1000, 3000),
-        yoyo: true,
-        repeat: -1,
-        delay: Phaser.Math.Between(0, 2000)
-      });
-    }
+    // Título
+    this.add.text(cx, cy - 80, 'RIFT', {
+      fontFamily: '"Courier New", Courier, monospace',
+      fontSize: '72px',
+      fontStyle: 'bold',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 8,
+    }).setOrigin(0.5).setShadow(0, 0, '#00ffaa', 15, true, true);
 
-    this.add.text(cx, cy - 60, 'RIFT', {
-      fontFamily: 'monospace',
-      fontSize: '48px',
-      color: '#f4e4d0',
-      stroke: '#000',
-      strokeThickness: 6,
-    }).setOrigin(0.5);
-
-    this.add.text(cx, cy - 20, 'entre dois mundos', {
-      fontFamily: 'monospace',
-      fontSize: '16px',
-      color: '#888899',
-    }).setOrigin(0.5);
-
-    const startBtn = this.add.text(cx, cy + 40, '[ PRESSIONE ENTER ]', {
-      fontFamily: 'monospace',
+    // Subtítulo
+    this.add.text(cx, cy - 20, 'ENTRE DOIS MUNDOS', {
+      fontFamily: '"Courier New", Courier, monospace',
       fontSize: '20px',
-      color: '#7ec8e3',
-    }).setOrigin(0.5);
+      fontStyle: 'bold',
+      color: '#aaddff',
+      stroke: '#000000',
+      strokeThickness: 4,
+    }).setOrigin(0.5).setShadow(2, 2, '#000000', 4, true, true);
+
+    // Botão de Iniciar
+    const startBtn = this.add.text(cx, cy + 60, '▶ PRESSIONE ENTER PARA INICIAR ◀', {
+      fontFamily: '"Courier New", Courier, monospace',
+      fontSize: '24px',
+      fontStyle: 'bold',
+      color: '#00ffaa',
+      stroke: '#000000',
+      strokeThickness: 5,
+    }).setOrigin(0.5).setShadow(0, 0, '#00ffaa', 10, true, true);
 
     this.tweens.add({
       targets: startBtn,
@@ -64,10 +60,14 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1
     });
 
-    this.add.text(cx, height - 40, 'Setas / AWSD: Movimentação do personagem | SHIFT: Dimensão', {
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      color: '#444455',
+    // Controles (Rodapé)
+    this.add.text(cx, height - 30, 'WASD/Setas: Mover  |  ESPAÇO: Atacar  |  SHIFT: Trocar Dimensão  |  E: Interagir', {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '14px',
+      fontStyle: 'bold',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 4,
     }).setOrigin(0.5);
 // Input para iniciar
 this.input.keyboard!.once('keydown-ENTER', () => {

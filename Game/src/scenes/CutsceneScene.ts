@@ -26,10 +26,12 @@ export class CutsceneScene extends Phaser.Scene {
 
     // Texto de suspense
     const text = this.add.text(width/2, height/2 - 80, "Você sente um olhar gélido em suas costas...", {
-      fontFamily: 'serif',
-      fontSize: '16px',
+      fontFamily: '"Courier New", Courier, monospace',
+      fontSize: '20px',
+      fontStyle: 'italic bold',
       color: '#ffffff',
-      fontStyle: 'italic'
+      stroke: '#000000',
+      strokeThickness: 4,
     }).setOrigin(0.5).setAlpha(0);
 
     // Substituindo o objeto image por um Sprite com frame específico

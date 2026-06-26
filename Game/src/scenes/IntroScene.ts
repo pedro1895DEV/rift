@@ -35,13 +35,15 @@ export class IntroScene extends Phaser.Scene {
       }
 
       const text = this.add.text(cx, cy, narrative[index], {
-        fontFamily: 'serif',
-        fontSize: '18px',
+        fontFamily: '"Courier New", Courier, monospace',
+        fontSize: '22px',
         color: '#ffffff',
-        fontStyle: 'italic',
+        fontStyle: 'italic bold',
         align: 'center',
+        stroke: '#000000',
+        strokeThickness: 4,
         wordWrap: { width: width * 0.8 }
-      }).setOrigin(0.5).setAlpha(0);
+      }).setOrigin(0.5).setAlpha(0).setShadow(2, 2, '#000000', 4, true, true);
 
       // Fade In
       this.tweens.add({

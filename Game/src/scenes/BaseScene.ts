@@ -211,12 +211,13 @@ export abstract class BaseScene extends Phaser.Scene {
 
     const text = this.add.text(centerX, yPos,
       "O que foi isso? O mundo... mudou de cor.\n(Pressione SHIFT para alternar)", {
-      fontFamily: 'monospace',
+      fontFamily: '"Courier New", Courier, monospace',
       fontSize: '32px',
+      fontStyle: 'bold',
       color: '#ffffff',
       align: 'center',
       stroke: '#000000',
-      strokeThickness: 4,
+      strokeThickness: 6,
       lineSpacing: 6,
       wordWrap: { width: boxWidth * zoom }
     }).setOrigin(0.5)
@@ -252,12 +253,13 @@ export abstract class BaseScene extends Phaser.Scene {
       .setDepth(100);
 
     const text = this.add.text(centerX, yPos, textMsg, {
-      fontFamily: 'monospace',
+      fontFamily: '"Courier New", Courier, monospace',
       fontSize: '32px',
+      fontStyle: 'bold',
       color: '#ffffff',
       align: 'center',
       stroke: '#000000',
-      strokeThickness: 4,
+      strokeThickness: 6,
       lineSpacing: 6,
       wordWrap: { width: boxWidth * zoom }
     }).setOrigin(0.5)

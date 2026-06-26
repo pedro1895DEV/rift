@@ -176,11 +176,12 @@ export class Phase2Scene extends BaseScene {
     this.chestInteracted = hasFoundSword;
 
     this.interactHint = this.add.text(chestX, chestY - 40, 'Pressione [E]', {
-      fontFamily: 'monospace',
+      fontFamily: '"Courier New", Courier, monospace',
       fontSize: '16px',
+      fontStyle: 'bold',
       color: '#ffff00',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 4
     }).setOrigin(0.5).setDepth(6).setVisible(false);
 
     const interactKey = this.input.keyboard!.addKey('E');
