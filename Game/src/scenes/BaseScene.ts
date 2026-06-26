@@ -16,6 +16,12 @@ export abstract class BaseScene extends Phaser.Scene {
   protected shiftKey!: Phaser.Input.Keyboard.Key;
   protected startData: SceneData = {};
   protected isDialogueActive: boolean = false;
+  protected disableSpiritBgm: boolean = false;
+  protected currentBgm?: Phaser.Sound.BaseSound;
+  protected spiritBgm?: Phaser.Sound.BaseSound;
+  protected sfxDimension1?: Phaser.Sound.BaseSound;
+  protected sfxDimension2?: Phaser.Sound.BaseSound;
+  protected sfxDimension3?: Phaser.Sound.BaseSound;
 
   constructor(key: string) {
     super({ key });
@@ -51,6 +57,12 @@ export abstract class BaseScene extends Phaser.Scene {
       });
     });
     
+    // Áudio global de dimensão
+    this.load.audio('bgm_spirit', 'assets/sounds/bgm/universfield-horror-background-atmosphere-025-30s-390130-MUNDO-ESPIRITUAL.mp3');
+    this.load.audio('sfx_dim1', 'assets/sounds/sfx/324644__chinomaker__time-warp-effect-TROCA-DIMENSAO.wav');
+    this.load.audio('sfx_dim2', 'assets/sounds/sfx/630037__el_boss__warp-drive-initiate-TROCA-DIMENSAO.wav');
+    this.load.audio('sfx_dim3', 'assets/sounds/sfx/814052__qubodup__retro-bit-explosion-TROCA-DIMENSAO.wav');
+
     this.onPreload();
   }
 
@@ -82,6 +94,31 @@ export abstract class BaseScene extends Phaser.Scene {
     // Input global
     this.shiftKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
+    // Inicializa o BGM e SFX da dimensão espiritual
+    this.spiritBgm = this.sound.add('bgm_spirit', { loop: true, volume: 0 });
+    this.spiritBgm.play();
+
+    this.sfxDimension1 = this.sound.add('sfx_dim1');
+    // this.sfxDimension2 = this.sound.add('sfx_dim2');
+    // this.sfxDimension3 = this.sound.add('sfx_dim3');
+
+    this.events.on('dimensionChanged', () => {
+      if (this.sfxDimension1) this.sfxDimension1.play();
+      // se preferir usar os outros, comente a linha de cima e descomente abaixo:
+      // if (this.sfxDimension2) this.sfxDimension2.play();
+      // if (this.sfxDimension3) this.sfxDimension3.play();
+
+      if (!this.disableSpiritBgm) {
+        if (this.dimensionSystem.isSpirit) {
+          if (this.currentBgm) (this.currentBgm as any).setVolume(0);
+          if (this.spiritBgm) (this.spiritBgm as any).setVolume(0.5);
+        } else {
+          if (this.currentBgm) (this.currentBgm as any).setVolume(0.5);
+          if (this.spiritBgm) (this.spiritBgm as any).setVolume(0);
+        }
+      }
+    });
+
     this.onCreate(map);
 
     // Listener centralizado de morte do jogador
@@ -91,6 +128,7 @@ export abstract class BaseScene extends Phaser.Scene {
     this.events.on(GameEvents.PLAYER_DIED, onPlayerDied);
     this.events.once('shutdown', () => {
       this.events.off(GameEvents.PLAYER_DIED, onPlayerDied);
+      if (this.spiritBgm) this.spiritBgm.stop();
     });
   }
 

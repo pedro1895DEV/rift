@@ -34,6 +34,9 @@ export class GameScene extends BaseScene {
   }
 
   protected onPreload(): void {
+    this.load.audio('bgm_phase1', 'assets/sounds/bgm/harumachimusic-forest-moon-mysterious-fantastic-piano-192111-PHASE1.mp3');
+    // this.load.audio('bgm_phase1_alt', 'assets/sounds/bgm/mickeyscat-moment-of-peace-mickeyscat-554494-PHASE1.mp3');
+    
     this.load.tilemapTiledJSON('level1', 'assets/tilesets/mapa.tmj');
 
     this.load.image('img_tiles', 'assets/tilesets/tiles.png');
@@ -85,6 +88,10 @@ export class GameScene extends BaseScene {
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
+    this.currentBgm = this.sound.add('bgm_phase1', { loop: true, volume: 0.5 });
+    // this.currentBgm = this.sound.add('bgm_phase1_alt', { loop: true, volume: 0.5 });
+    this.currentBgm.play();
+
     this.healthUI = new HealthUI(this);
     this.phaseObjective = new PhaseObjective(this, 0, 0);
 
@@ -135,6 +142,7 @@ export class GameScene extends BaseScene {
     this.events.once('shutdown', () => {
       this.healthUI.destroy();
       this.phaseObjective.destroy();
+      if (this.currentBgm) this.currentBgm.stop();
     });
   }
 }

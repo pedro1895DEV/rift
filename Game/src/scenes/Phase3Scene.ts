@@ -26,6 +26,9 @@ export class Phase3Scene extends BaseScene {
   }
 
   protected onPreload(): void {
+    this.load.audio('bgm_phase3', 'assets/sounds/bgm/soulprodmusic-mysterious-forest-creepy-lofi-halloween-lofi-halloween-music-168238-PHASE3.mp3');
+    // this.load.audio('bgm_phase3_alt', 'assets/sounds/bgm/thefealdoproject-music-for-trailers-mysterious-229751-PHASE4-OU-3.mp3');
+
     this.load.tilemapTiledJSON('level3', 'assets/tilesets/mapa3.tmj');
     this.load.image('img_impr', 'assets/tilesets/imprtileset.png');
     this.load.spritesheet('entity_idle', 'assets/characters/Idle.png', {
@@ -89,6 +92,10 @@ export class Phase3Scene extends BaseScene {
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
+    this.currentBgm = this.sound.add('bgm_phase3', { loop: true, volume: 0.5 });
+    // this.currentBgm = this.sound.add('bgm_phase3_alt', { loop: true, volume: 0.5 });
+    this.currentBgm.play();
+
     this.healthUI = new HealthUI(this);
 
     // Estado inicial do ataque
@@ -262,6 +269,7 @@ export class Phase3Scene extends BaseScene {
       this.healthUI.destroy();
       this.phaseObjective.destroy();
       this.events.off('dimensionChanged', updateDimensionState);
+      if (this.currentBgm) this.currentBgm.stop();
     });
   }
 

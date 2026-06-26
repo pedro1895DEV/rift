@@ -11,7 +11,6 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
   private dimensionSystem: DimensionSystem;
   private regenTimer: Phaser.Time.TimerEvent | null = null;
   public isActiveEntity: boolean = true;
-  // Distância mínima de segurança no mundo real (pode precisar de ajuste fino visual)
   private realWorldFollowDistance: number = 120;
   private hasBeenTriggered: boolean = false;
   private isResetting: boolean = false;

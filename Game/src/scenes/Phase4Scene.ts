@@ -47,6 +47,10 @@ export class Phase4Scene extends BaseScene {
   }
 
   protected onPreload(): void {
+    this.load.audio('bgm_phase4_prefight', 'assets/sounds/bgm/universfield-horror-background-atmosphere-03-166106-PHASE4-LOOP-PREFIGHT.mp3');
+    this.load.audio('bgm_phase4_fight', 'assets/sounds/bgm/alec_koff-epic-fight-487416-PHASE4-LOOP-FIGHT.mp3');
+    // this.load.audio('bgm_phase4_fight_alt', 'assets/sounds/bgm/thefealdoproject-music-for-trailers-mysterious-229751-PHASE4-OU-3.mp3');
+
     this.load.tilemapTiledJSON('level4', 'assets/tilesets/mapa4.tmj');
     
     // Carregar tilesets do Dark Swamp Starter Pack (podem não existir - fallback para assets.png)
@@ -129,6 +133,11 @@ export class Phase4Scene extends BaseScene {
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
+    this.disableSpiritBgm = true;
+    
+    this.currentBgm = this.sound.add('bgm_phase4_prefight', { loop: true, volume: 0.5 });
+    this.currentBgm.play();
+
     this.healthUI = new HealthUI(this);
     
     // Objetivo da fase: portais. Não precisamos de kills ou orbes padrão
@@ -160,7 +169,15 @@ export class Phase4Scene extends BaseScene {
     ];
 
     const showLoreSequence = (index: number) => {
-      if (index >= loreMessages.length) return;
+      if (index >= loreMessages.length) {
+        if (this.currentBgm) this.currentBgm.stop();
+        
+        this.currentBgm = this.sound.add('bgm_phase4_fight', { loop: true, volume: 0.5 });
+        // this.currentBgm = this.sound.add('bgm_phase4_fight_alt', { loop: true, volume: 0.5 });
+        
+        this.currentBgm.play();
+        return;
+      }
       this.showNarrativeDialogue(loreMessages[index], () => {
         showLoreSequence(index + 1);
       });
@@ -244,6 +261,7 @@ export class Phase4Scene extends BaseScene {
     this.events.once('shutdown', () => {
       this.healthUI.destroy();
       this.phaseObjective.destroy();
+      if (this.currentBgm) this.currentBgm.stop();
     });
   }
 

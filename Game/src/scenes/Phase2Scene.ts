@@ -22,6 +22,8 @@ export class Phase2Scene extends BaseScene {
   }
 
   protected onPreload(): void {
+    this.load.audio('bgm_phase2', 'assets/sounds/bgm/nr-music-short-mystical-orchestral-loop-541105-PHASE2.mp3');
+    
     this.load.tilemapTiledJSON('level2', 'assets/tilesets/mapa2.tmj');
 
     // Carregar todas as imagens de tileset usadas no mapa2.tmj
@@ -99,6 +101,9 @@ export class Phase2Scene extends BaseScene {
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
+    this.currentBgm = this.sound.add('bgm_phase2', { loop: true, volume: 0.5 });
+    this.currentBgm.play();
+
     this.healthUI = new HealthUI(this);
 
     // Estado inicial do ataque
@@ -240,6 +245,7 @@ export class Phase2Scene extends BaseScene {
     this.events.once('shutdown', () => {
       this.healthUI.destroy();
       this.phaseObjective.destroy();
+      if (this.currentBgm) this.currentBgm.stop();
     });
   }
 
