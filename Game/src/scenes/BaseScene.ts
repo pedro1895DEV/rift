@@ -102,9 +102,10 @@ export abstract class BaseScene extends Phaser.Scene {
     this.spiritBgm = this.sound.add('bgm_spirit', { loop: true, volume: 0 });
     this.spiritBgm.play();
 
-    this.sfxDimension1 = this.sound.add('sfx_dim1');
-    // this.sfxDimension2 = this.sound.add('sfx_dim2');
-    // this.sfxDimension3 = this.sound.add('sfx_dim3');
+    const sfxVol = (this.registry.get('sfxVolume') ?? 0.8) as number;
+    this.sfxDimension1 = this.sound.add('sfx_dim1', { volume: sfxVol });
+    // this.sfxDimension2 = this.sound.add('sfx_dim2', { volume: sfxVol });
+    // this.sfxDimension3 = this.sound.add('sfx_dim3', { volume: sfxVol });
 
     this.events.on('dimensionChanged', () => {
       if (this.sfxDimension1) this.sfxDimension1.play();
@@ -113,11 +114,12 @@ export abstract class BaseScene extends Phaser.Scene {
       // if (this.sfxDimension3) this.sfxDimension3.play();
 
       if (!this.disableSpiritBgm) {
+        const bgmVol = (this.registry.get('bgmVolume') ?? 0.5) as number;
         if (this.dimensionSystem.isSpirit) {
           if (this.currentBgm) (this.currentBgm as any).setVolume(0);
-          if (this.spiritBgm) (this.spiritBgm as any).setVolume(0.5);
+          if (this.spiritBgm) (this.spiritBgm as any).setVolume(bgmVol);
         } else {
-          if (this.currentBgm) (this.currentBgm as any).setVolume(0.5);
+          if (this.currentBgm) (this.currentBgm as any).setVolume(bgmVol);
           if (this.spiritBgm) (this.spiritBgm as any).setVolume(0);
         }
       }

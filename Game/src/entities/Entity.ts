@@ -47,14 +47,16 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
 
   public activate(): void {
     if (!this.hasBeenTriggered) {
-      this.scene.sound.play('sfx_entity_scream', { volume: 0.8 });
+      const sfxVol = (this.scene.registry.get('sfxVolume') ?? 0.8) as number;
+      this.scene.sound.play('sfx_entity_scream', { volume: sfxVol });
     }
     this.hasBeenTriggered = true;
   }
 
   public onPortalSealed(): void {
     this.portalsSealedCount++;
-    this.scene.sound.play('sfx_entity_scream', { volume: 1.0 });
+    const sfxVol = (this.scene.registry.get('sfxVolume') ?? 0.8) as number;
+    this.scene.sound.play('sfx_entity_scream', { volume: sfxVol });
   }
 
   public spookAway(playerX: number, playerY: number): void {
@@ -89,7 +91,8 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
   public takeDamage(amount: number): void {
     if (this.isImmune || this.health <= 0 || !this.isActiveEntity) return;
 
-    this.scene.sound.play('sfx_entity_scream', { volume: 0.6, rate: 1.2 }); // Grito agudo ao levar dano
+    const sfxVol = (this.scene.registry.get('sfxVolume') ?? 0.8) as number;
+    this.scene.sound.play('sfx_entity_scream', { volume: sfxVol * 0.75, rate: 1.2 }); // Grito agudo ao levar dano
     this.health -= amount;
     
     this.setTint(0xff0000);

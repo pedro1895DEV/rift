@@ -92,8 +92,9 @@ export class Phase3Scene extends BaseScene {
   }
 
   protected onCreate(map: Phaser.Tilemaps.Tilemap): void {
-    this.currentBgm = this.sound.add('bgm_phase3', { loop: true, volume: 0.5 });
-    // this.currentBgm = this.sound.add('bgm_phase3_alt', { loop: true, volume: 0.5 });
+    const bgmVol = (this.registry.get('bgmVolume') ?? 0.5) as number;
+    this.currentBgm = this.sound.add('bgm_phase3', { loop: true, volume: bgmVol });
+    // this.currentBgm = this.sound.add('bgm_phase3_alt', { loop: true, volume: bgmVol });
     this.currentBgm.play();
 
     this.healthUI = new HealthUI(this);

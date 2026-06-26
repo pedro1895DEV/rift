@@ -12,7 +12,8 @@ export class VictoryScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.bgm = this.sound.add('bgm_victory', { loop: true, volume: 0.5 });
+    const bgmVol = (this.registry.get('bgmVolume') ?? 0.5) as number;
+    this.bgm = this.sound.add('bgm_victory', { loop: true, volume: bgmVol });
     this.bgm.play();
 
     const { width, height } = this.scale;
