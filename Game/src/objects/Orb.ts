@@ -2,13 +2,11 @@ import Phaser from 'phaser';
 
 export class Orb extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    // Usaremos uma representação temporária se não houver asset
     super(scene, x, y, 'orb');
     
     scene.add.existing(this);
-    scene.physics.add.existing(this, true); // Corpo estático
+    scene.physics.add.existing(this, true);
 
-    // Se não houver textura 'orb', criamos uma forma simples
     if (!scene.textures.exists('orb')) {
       const graphics = scene.make.graphics({ x: 0, y: 0 });
       graphics.fillStyle(0xffff00, 1);
@@ -17,7 +15,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite {
       this.setTexture('orb');
     }
 
-    // Efeito de flutuação
+    // Efeitos
     scene.tweens.add({
       targets: this,
       y: y - 10,
@@ -32,7 +30,6 @@ export class Orb extends Phaser.Physics.Arcade.Sprite {
   }
 
   collect(): void {
-    // Som de coleta pode ser adicionado aqui futuramente
     this.destroy();
   }
 }

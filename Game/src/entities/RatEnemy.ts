@@ -7,7 +7,7 @@ export class RatEnemy extends Phaser.Physics.Arcade.Sprite implements IDamageabl
   private health: number = 2;
   private alive: boolean = true;
   
-  // Lógica herdada do Rat original
+  // Configurações de comportamento
   private spawnPoint: Phaser.Math.Vector2;
   private detectionRange: number = 150;
   private leashRange: number = 250;

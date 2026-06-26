@@ -109,7 +109,6 @@ export abstract class BaseScene extends Phaser.Scene {
 
     this.events.on('dimensionChanged', () => {
       if (this.sfxDimension1) this.sfxDimension1.play();
-      // se preferir usar os outros, comente a linha de cima e descomente abaixo:
       // if (this.sfxDimension2) this.sfxDimension2.play();
       // if (this.sfxDimension3) this.sfxDimension3.play();
 

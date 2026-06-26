@@ -173,7 +173,7 @@ export class Entity extends Phaser.Physics.Arcade.Sprite implements IDamageable 
       return;
     }
 
-    // Sempre visível agora — sólida no espiritual, "fantasmagórica" no real
+    // Sempre visível — sólida no espiritual, "fantasmagórica" no real
     this.setVisible(true);
     this.setAlpha(this.dimensionSystem.isSpirit ? 1 : 0.5);
 
