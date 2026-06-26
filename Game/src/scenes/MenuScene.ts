@@ -1,11 +1,20 @@
 import Phaser from 'phaser';
 
 export class MenuScene extends Phaser.Scene {
+  private bgm!: Phaser.Sound.BaseSound;
+
   constructor() {
     super({ key: 'MenuScene' });
   }
 
+  preload(): void {
+    this.load.audio('bgm_menu', 'assets/sounds/bgm/lorenzobuczek-dark-forest-156382-MENU-SOUNDTRACK-LOOP.mp3');
+  }
+
   create(): void {
+    this.bgm = this.sound.add('bgm_menu', { loop: true, volume: 0.5 });
+    this.bgm.play();
+
     const { width, height } = this.scale;
     const cx = width / 2;
     const cy = height / 2;
@@ -64,6 +73,7 @@ export class MenuScene extends Phaser.Scene {
 this.input.keyboard!.once('keydown-ENTER', () => {
   this.cameras.main.fadeOut(500, 0, 0, 0);
   this.cameras.main.once('camerafadeoutcomplete', () => {
+    this.bgm.stop();
     this.scene.start('IntroScene');
   });
 });

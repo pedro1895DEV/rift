@@ -49,6 +49,7 @@ export class Phase4Scene extends BaseScene {
   protected onPreload(): void {
     this.load.audio('bgm_phase4_prefight', 'assets/sounds/bgm/universfield-horror-background-atmosphere-03-166106-PHASE4-LOOP-PREFIGHT.mp3');
     this.load.audio('bgm_phase4_fight', 'assets/sounds/bgm/alec_koff-epic-fight-487416-PHASE4-LOOP-FIGHT.mp3');
+    this.load.audio('sfx_entity_scream', 'assets/sounds/sfx/546507__szegvari__ghost-creature-monster-scream-sfx-201129_0079-SOM-ENTIDADE.wav');
     // this.load.audio('bgm_phase4_fight_alt', 'assets/sounds/bgm/thefealdoproject-music-for-trailers-mysterious-229751-PHASE4-OU-3.mp3');
 
     this.load.tilemapTiledJSON('level4', 'assets/tilesets/mapa4.tmj');

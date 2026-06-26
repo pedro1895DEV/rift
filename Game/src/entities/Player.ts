@@ -106,6 +106,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.currentHealth <= 0) return;
     if (this.isInvulnerable) return;
 
+    this.scene.sound.play('sfx_player_hurt', { volume: 0.8 });
+
     this.currentHealth = Math.max(0, this.currentHealth - amount);
     this.emitHealth();
 
@@ -151,6 +153,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.scene.time.now - this.lastAttackTime > this.comboWindow) {
       this.comboStep = 1;
     }
+
+    this.scene.sound.play('sfx_player_attack', { volume: 0.6 });
 
     this.lastAttackTime = this.scene.time.now;
 

@@ -63,6 +63,10 @@ export abstract class BaseScene extends Phaser.Scene {
     this.load.audio('sfx_dim2', 'assets/sounds/sfx/630037__el_boss__warp-drive-initiate-TROCA-DIMENSAO.wav');
     this.load.audio('sfx_dim3', 'assets/sounds/sfx/814052__qubodup__retro-bit-explosion-TROCA-DIMENSAO.wav');
 
+    // SFX Jogador
+    this.load.audio('sfx_player_hurt', 'assets/sounds/sfx/170149__timgormly__8-bit-hurt-SOFRER-DANO.mp3');
+    this.load.audio('sfx_player_attack', 'assets/sounds/sfx/580307__colorscrimsontears__slash-rpg-ATAQUE.wav');
+
     this.onPreload();
   }
 

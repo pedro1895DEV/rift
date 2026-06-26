@@ -1,11 +1,20 @@
 import Phaser from 'phaser';
 
 export class VictoryScene extends Phaser.Scene {
+  private bgm!: Phaser.Sound.BaseSound;
+
   constructor() {
     super('VictoryScene');
   }
 
+  preload(): void {
+    this.load.audio('bgm_victory', 'assets/sounds/bgm/music_for_creators-piano-emotional-inspiring-cinematic-132225-VICTORY-SCENE.mp3');
+  }
+
   create(): void {
+    this.bgm = this.sound.add('bgm_victory', { loop: true, volume: 0.5 });
+    this.bgm.play();
+
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#000000');
 
@@ -71,6 +80,7 @@ export class VictoryScene extends Phaser.Scene {
       duration: 1000,
       onComplete: () => {
         this.input.keyboard!.once('keydown-ENTER', () => {
+          this.bgm.stop();
           this.scene.start('MenuScene');
         });
       }
